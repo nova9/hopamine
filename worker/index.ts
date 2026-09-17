@@ -1,18 +1,12 @@
 import { Hono } from "hono";
-import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+import {
+  countRowSchema,
+  createEventSchema,
+  eventRowSchema,
+  listEventsSchema,
+} from "./schemas";
 import { slugify } from "./utils";
-
-const createEventSchema = z.object({
-  name: z.string().trim().min(1).max(200),
-  host: z.string().trim().min(1).max(100),
-  startsAt: z
-    .string()
-    .refine((value) => !Number.isNaN(Date.parse(value)), "Invalid start date"),
-  location: z.string().trim().min(1).max(200),
-  description: z.string().trim().min(1).max(5_000),
-  category: z.enum(["workshop", "trade", "collaboration"]),
-});
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -22,6 +16,79 @@ app.get("/api/health", (c) => {
     message: "Hopamine API is running",
   });
 });
+
+app.get(
+  "/api/events",
+  zValidator("query", listEventsSchema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          error: "Invalid pagination parameters",
+          issues: result.error.issues,
+        },
+        400,
+      );
+    }
+  }),
+  async (c) => {
+    const { page, pageSize } = c.req.valid("query");
+    const offset = (page - 1) * pageSize;
+
+    const [countResult, eventsResult] = await c.env.hopamine_db.batch([
+      c.env.hopamine_db.prepare("SELECT COUNT(*) AS total FROM events"),
+      c.env.hopamine_db
+        .prepare(
+          `
+            SELECT
+              id,
+              slug,
+              name,
+              host,
+              starts_at,
+              location,
+              description,
+              category,
+              created_at,
+              updated_at
+            FROM events
+            ORDER BY starts_at ASC, id ASC
+            LIMIT ?1 OFFSET ?2
+          `,
+        )
+        .bind(pageSize, offset),
+    ]);
+
+    const { total } = countRowSchema.parse(countResult.results[0]);
+    const rows = eventRowSchema.array().parse(eventsResult.results);
+    const now = Date.now();
+    const events = rows.map((event) => ({
+      id: event.id,
+      slug: event.slug,
+      name: event.name,
+      host: event.host,
+      startsAt: event.starts_at,
+      location: event.location,
+      description: event.description,
+      category: event.category,
+      status: Date.parse(event.starts_at) > now ? "upcoming" : "past",
+      createdAt: event.created_at,
+      updatedAt: event.updated_at,
+    }));
+    const totalPages = Math.ceil(total / pageSize);
+
+    return c.json({
+      events,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    });
+  },
+);
 
 app.post(
   "/api/events",
