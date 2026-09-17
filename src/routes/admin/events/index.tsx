@@ -21,60 +21,17 @@ import {
 } from "@/components/ui/card";
 import { getEvents } from "@/lib/events";
 import { formatEventDate } from "@/routes/-layout";
-import type { ModeratorSession } from "@/types/events";
 
 export const Route = createFileRoute("/admin/events/")({
   component: AdminEventsPage,
 });
 
-async function getModeratorSession() {
-  const response = await fetch("/api/admin/session");
-
-  if (!response.ok) {
-    throw new Error(
-      response.status === 401
-        ? "This area requires a moderator account through Cloudflare Access."
-        : "Moderator access could not be verified.",
-    );
-  }
-
-  return (await response.json()) as ModeratorSession;
-}
-
 function AdminEventsPage() {
-  const sessionQuery = useQuery({
-    queryKey: ["moderator-session"],
-    queryFn: getModeratorSession,
-    retry: false,
-  });
+  const { moderator } = Route.useRouteContext();
   const eventsQuery = useQuery({
     queryKey: ["events"],
     queryFn: getEvents,
-    enabled: sessionQuery.isSuccess,
   });
-
-  if (sessionQuery.isPending) {
-    return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <p className="text-sm text-muted-foreground">Verifying moderator access…</p>
-      </main>
-    );
-  }
-
-  if (sessionQuery.isError) {
-    return (
-      <main className="mx-auto w-full max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
-        <Alert variant="destructive">
-          <LockKey aria-hidden="true" />
-          <AlertTitle>Moderator access required</AlertTitle>
-          <AlertDescription>{sessionQuery.error.message}</AlertDescription>
-        </Alert>
-        <Link to="/" className={`${buttonVariants({ variant: "outline" })} mt-4`}>
-          Return to public events
-        </Link>
-      </main>
-    );
-  }
 
   const events = eventsQuery.data ?? [];
   const upcomingCount = events.filter((event) => event.status === "upcoming").length;
@@ -89,7 +46,7 @@ function AdminEventsPage() {
           </Badge>
           <h1 className="font-heading text-3xl font-medium tracking-tight">Event management</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Signed in as {sessionQuery.data.moderator.email}
+            Signed in as {moderator.email}
           </p>
         </div>
         <Link to="/admin/events/new" className={buttonVariants()}>
