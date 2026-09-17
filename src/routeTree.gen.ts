@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsRouteRouteImport } from './routes/events/route'
 import { Route as EventsEventSlugRouteRouteImport } from './routes/events/$eventSlug/route'
+import { Route as EventsCreateRouteImport } from './routes/events/create'
 import { Route as EventsPastRouteImport } from './routes/events/past'
 import { Route as EventsEventSlugIndexRouteImport } from './routes/events/$eventSlug/index'
 import { Route as EventsEventSlugSubmissionsRouteRouteImport } from './routes/events/$eventSlug/submissions/route'
@@ -30,6 +31,11 @@ const EventsRouteRoute = EventsRouteRouteImport.update({
 const EventsEventSlugRouteRoute = EventsEventSlugRouteRouteImport.update({
   id: '/$eventSlug',
   path: '/$eventSlug',
+  getParentRoute: () => EventsRouteRoute,
+} as any)
+const EventsCreateRoute = EventsCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
   getParentRoute: () => EventsRouteRoute,
 } as any)
 const EventsPastRoute = EventsPastRouteImport.update({
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRouteRouteWithChildren
   '/events/$eventSlug': typeof EventsEventSlugRouteRouteWithChildren
+  '/events/create': typeof EventsCreateRoute
   '/events/past': typeof EventsPastRoute
   '/events/$eventSlug/submissions': typeof EventsEventSlugSubmissionsRouteRouteWithChildren
   '/events/$eventSlug/': typeof EventsEventSlugIndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRouteRouteWithChildren
+  '/events/create': typeof EventsCreateRoute
   '/events/past': typeof EventsPastRoute
   '/events/$eventSlug/submissions': typeof EventsEventSlugSubmissionsRouteRouteWithChildren
   '/events/$eventSlug': typeof EventsEventSlugIndexRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRouteRouteWithChildren
   '/events/$eventSlug': typeof EventsEventSlugRouteRouteWithChildren
+  '/events/create': typeof EventsCreateRoute
   '/events/past': typeof EventsPastRoute
   '/events/$eventSlug/submissions': typeof EventsEventSlugSubmissionsRouteRouteWithChildren
   '/events/$eventSlug/': typeof EventsEventSlugIndexRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/events/$eventSlug'
+    | '/events/create'
     | '/events/past'
     | '/events/$eventSlug/submissions'
     | '/events/$eventSlug/'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/events'
+    | '/events/create'
     | '/events/past'
     | '/events/$eventSlug/submissions'
     | '/events/$eventSlug'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/events/$eventSlug'
+    | '/events/create'
     | '/events/past'
     | '/events/$eventSlug/submissions'
     | '/events/$eventSlug/'
@@ -137,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/$eventSlug'
       fullPath: '/events/$eventSlug'
       preLoaderRoute: typeof EventsEventSlugRouteRouteImport
+      parentRoute: typeof EventsRouteRoute
+    }
+    '/events/create': {
+      id: '/events/create'
+      path: '/create'
+      fullPath: '/events/create'
+      preLoaderRoute: typeof EventsCreateRouteImport
       parentRoute: typeof EventsRouteRoute
     }
     '/events/past': {
@@ -201,11 +220,13 @@ const EventsEventSlugRouteRouteWithChildren =
 
 interface EventsRouteRouteChildren {
   EventsEventSlugRouteRoute: typeof EventsEventSlugRouteRouteWithChildren
+  EventsCreateRoute: typeof EventsCreateRoute
   EventsPastRoute: typeof EventsPastRoute
 }
 
 const EventsRouteRouteChildren: EventsRouteRouteChildren = {
   EventsEventSlugRouteRoute: EventsEventSlugRouteRouteWithChildren,
+  EventsCreateRoute: EventsCreateRoute,
   EventsPastRoute: EventsPastRoute,
 }
 

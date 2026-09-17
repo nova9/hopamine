@@ -71,6 +71,12 @@ export function Layout() {
           </Link>
 
           <nav aria-label="Primary navigation" className="flex items-center gap-1">
+            <Link
+              to="/events/create"
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Create event
+            </Link>
             <a
               className={buttonVariants({ variant: "ghost" })}
               href="mailto:hello@hopamine.community"
