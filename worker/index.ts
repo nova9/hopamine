@@ -8,7 +8,10 @@ import {
 } from "./schemas";
 import { sanitizeFilename, slugify } from "./utils";
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{
+  Bindings: Env;
+  Variables: { moderatorEmail: string };
+}>();
 
 const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
 const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
@@ -34,6 +37,27 @@ function getPresentationError(file: File) {
 
   return null;
 }
+
+async function getAccessIdentity(executionCtx: unknown) {
+  return (executionCtx as ExecutionContext).access?.getIdentity();
+}
+
+app.use("/api/admin/*", async (c, next) => {
+  const identity = await getAccessIdentity(c.executionCtx);
+
+  if (!identity?.email) {
+    return c.json(
+      {
+        error:
+          "Moderator access is required. Protect /admin/* and /api/admin/* with Cloudflare Access.",
+      },
+      401,
+    );
+  }
+
+  c.set("moderatorEmail", identity.email);
+  await next();
+});
 
 
 app.get("/api/health", (c) => {
@@ -132,7 +156,76 @@ app.get(
   },
 );
 
-app.post("/api/events", async (c) => {
+app.get("/api/events/:eventSlug", async (c) => {
+  const row = await c.env.hopamine_db
+    .prepare(
+      `
+        SELECT
+          id,
+          slug,
+          name,
+          host,
+          starts_at,
+          location,
+          description,
+          category,
+          presentation_key,
+          presentation_name,
+          presentation_type,
+          presentation_size,
+          created_at,
+          updated_at
+        FROM events
+        WHERE slug = ?1
+      `,
+    )
+    .bind(c.req.param("eventSlug"))
+    .first();
+
+  if (!row) {
+    return c.json({ error: "Event not found" }, 404);
+  }
+
+  const event = eventRowSchema.parse(row);
+  const hasPresentation =
+    event.presentation_key &&
+    event.presentation_name &&
+    event.presentation_type &&
+    event.presentation_size !== null;
+
+  return c.json({
+    event: {
+      id: event.id,
+      slug: event.slug,
+      name: event.name,
+      host: event.host,
+      startsAt: event.starts_at,
+      location: event.location,
+      description: event.description,
+      category: event.category,
+      status: Date.parse(event.starts_at) > Date.now() ? "upcoming" : "past",
+      presentation: hasPresentation
+        ? {
+            name: event.presentation_name,
+            type: event.presentation_type,
+            size: event.presentation_size,
+            downloadUrl: `/api/events/${event.slug}/presentation`,
+          }
+        : null,
+      submissionCount: 0,
+    },
+  });
+});
+
+app.get("/api/admin/session", async (c) => {
+  return c.json({
+    moderator: {
+      email: c.get("moderatorEmail"),
+    },
+  });
+});
+
+app.post("/api/admin/events", async (c) => {
     const contentType = c.req.header("content-type") ?? "";
     let rawInput: Record<string, unknown>;
     let presentation: File | null = null;
@@ -241,6 +334,7 @@ app.post("/api/events", async (c) => {
           ...input,
           startsAt,
           status: new Date(startsAt) > new Date() ? "upcoming" : "past",
+          submissionCount: 0,
           presentation: presentation
             ? {
                 name: presentation.name,

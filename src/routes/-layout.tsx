@@ -64,10 +64,10 @@ export function Layout() {
 
           <nav aria-label="Primary navigation" className="flex items-center gap-1">
             <Link
-              to="/events/create"
+              to="/admin/events"
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
-              Create event
+              Moderator sign in
             </Link>
             <a
               className={cn(

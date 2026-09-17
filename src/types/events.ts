@@ -18,11 +18,15 @@ export type EventPresentation = {
   name: string;
   type: string;
   size: number;
+  downloadUrl: string;
 };
 
-export type CreatedEvent = EventSummary & {
+export type EventDetail = EventSummary & {
   presentation: EventPresentation | null;
+  submissionCount: number;
 };
+
+export type CreatedEvent = EventDetail;
 
 export type EventsResponse = {
   events: EventSummary[];
@@ -32,9 +36,19 @@ export type CreateEventResponse = {
   event: CreatedEvent;
 };
 
+export type EventResponse = {
+  event: EventDetail;
+};
+
 export type ApiErrorResponse = {
   error?: string;
   issues?: Array<{ message?: string }>;
+};
+
+export type ModeratorSession = {
+  moderator: {
+    email: string;
+  };
 };
 
 export type SubmissionFile = {

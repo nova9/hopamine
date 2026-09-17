@@ -48,7 +48,7 @@ import type {
   CreateEventResponse,
 } from "@/types/events";
 
-export const Route = createFileRoute("/events/create")({
+export const Route = createFileRoute("/admin/events/new")({
   component: CreateEventPage,
 });
 
@@ -115,7 +115,10 @@ async function createEvent(values: CreateEventFormValues): Promise<CreatedEvent>
   }
 
   try {
-    const { data } = await axios.post<CreateEventResponse>("/api/events", formData);
+    const { data } = await axios.post<CreateEventResponse>(
+      "/api/admin/events",
+      formData,
+    );
 
     if (!data.event) {
       throw new Error("The server returned an unexpected response.");
@@ -171,11 +174,11 @@ function CreateEventPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <Link
-        to="/"
+        to="/admin/events"
         className={`${buttonVariants({ variant: "ghost", size: "sm" })} mb-4`}
       >
         <ArrowLeft data-icon="inline-start" aria-hidden="true" />
-        Back to events
+        Back to event management
       </Link>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -373,7 +376,10 @@ function CreateEventPage() {
             </CardContent>
 
             <CardFooter className="justify-end gap-2">
-              <Link to="/" className={buttonVariants({ variant: "ghost" })}>
+              <Link
+                to="/admin/events"
+                className={buttonVariants({ variant: "ghost" })}
+              >
                 Cancel
               </Link>
               <Button type="submit" disabled={createEventMutation.isPending}>
