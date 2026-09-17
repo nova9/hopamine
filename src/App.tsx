@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button"
-
 type EventStatus = "upcoming" | "past";
 
 type EventSummary = {
@@ -53,6 +51,10 @@ function App() {
 
   const pastEvents = events
     .filter((event) => event.status === "past")
+    .toSorted(
+      (first, second) =>
+        Date.parse(second.startsAt) - Date.parse(first.startsAt),
+    )
     .slice(0, 5);
 
   return (
