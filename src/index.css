@@ -6,7 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-mono);
+    --font-heading: 'JetBrains Mono Variable', monospace;
+    --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'JetBrains Mono Variable', monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -125,6 +126,65 @@
     @apply bg-background text-foreground;
     }
   html {
-    @apply font-mono;
+    @apply font-sans;
     }
+}
+
+/* Hopamine brand overrides */
+:root {
+  --background: oklch(0.995 0.003 250);
+  --foreground: oklch(0.22 0.025 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.025 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.025 255);
+  --primary: oklch(0.31 0.11 255);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.025 250);
+  --secondary-foreground: oklch(0.3 0.09 255);
+  --muted: oklch(0.96 0.014 250);
+  --muted-foreground: oklch(0.48 0.035 255);
+  --accent: oklch(0.9 0.16 96);
+  --accent-foreground: oklch(0.25 0.06 255);
+  --border: oklch(0.9 0.025 250);
+  --input: oklch(0.9 0.025 250);
+  --ring: oklch(0.52 0.17 255);
+  --radius: 0.75rem;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+.event-art {
+  background-color: #184a91;
+}
+
+.event-art-workshop {
+  background-image: linear-gradient(140deg, #123a78, #2d77d1 62%, #8fc5ff);
+}
+
+.event-art-trade {
+  background-image: linear-gradient(140deg, #061f4b, #254d9b 55%, #ffd83d);
+}
+
+.event-art-collaboration {
+  background-image: linear-gradient(140deg, #1a3d73, #217da2 58%, #65cde0);
+}
+
+.event-art-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom right, black, transparent 78%);
+}
+
+::selection {
+  background: #fde047;
+  color: #0f2a5a;
 }
