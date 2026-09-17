@@ -7,8 +7,13 @@ import {
   Info,
   WarningCircle,
 } from "@phosphor-icons/react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { type FormEvent, useState } from "react";
+import axios from "axios";
+import { useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +26,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -31,6 +42,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type {
+  ApiErrorResponse,
+  CreatedEvent,
+  CreateEventResponse,
+} from "@/types/events";
 
 export const Route = createFileRoute("/events/create")({
   component: CreateEventPage,
@@ -39,103 +55,118 @@ export const Route = createFileRoute("/events/create")({
 const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
 const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
 
-type EventCategory = "workshop" | "trade" | "collaboration";
+const createEventFormSchema = z.object({
+  name: z.string().trim().min(1, "Enter an event name.").max(200),
+  host: z.string().trim().min(1, "Enter the event host.").max(100),
+  category: z.enum(["workshop", "trade", "collaboration"]),
+  startsAt: z
+    .string()
+    .min(1, "Enter a start date and time.")
+    .refine(
+      (value) => !Number.isNaN(new Date(value).getTime()),
+      "Enter a valid start date and time.",
+    ),
+  location: z.string().trim().min(1, "Enter the event location.").max(200),
+  description: z.string().trim().min(1, "Enter an event description.").max(5_000),
+  presentation: z
+    .custom<FileList | undefined>()
+    .superRefine((files, context) => {
+      const presentation = files?.item(0);
 
-type CreatedEvent = {
-  id: string;
-  slug: string;
-  name: string;
-  host: string;
-  startsAt: string;
-  location: string;
-  description: string;
-  category: EventCategory;
-  status: "upcoming" | "past";
-  presentation: {
-    name: string;
-    type: string;
-    size: number;
-  } | null;
-};
+      if (!presentation) return;
 
-type CreateEventResponse = {
-  event: CreatedEvent;
-};
+      const lowercaseName = presentation.name.toLowerCase();
+      const hasAllowedExtension = PRESENTATION_EXTENSIONS.some((extension) =>
+        lowercaseName.endsWith(extension),
+      );
 
-type ErrorResponse = {
-  error?: string;
-  issues?: Array<{ message?: string }>;
-};
+      if (!hasAllowedExtension) {
+        context.addIssue({
+          code: "custom",
+          message: "The presentation must be a PPT, PPTX, or PDF file.",
+        });
+      }
+
+      if (presentation.size > MAX_PRESENTATION_SIZE) {
+        context.addIssue({
+          code: "custom",
+          message: "The presentation must be 25 MB or smaller.",
+        });
+      }
+    })
+    .optional(),
+});
+
+type CreateEventFormValues = z.infer<typeof createEventFormSchema>;
+
+async function createEvent(values: CreateEventFormValues): Promise<CreatedEvent> {
+  const formData = new FormData();
+  const presentation = values.presentation?.item(0);
+
+  formData.set("name", values.name.trim());
+  formData.set("host", values.host.trim());
+  formData.set("category", values.category);
+  formData.set("startsAt", new Date(values.startsAt).toISOString());
+  formData.set("location", values.location.trim());
+  formData.set("description", values.description.trim());
+
+  if (presentation) {
+    formData.set("presentation", presentation);
+  }
+
+  try {
+    const { data } = await axios.post<CreateEventResponse>("/api/events", formData);
+
+    if (!data.event) {
+      throw new Error("The server returned an unexpected response.");
+    }
+
+    return data.event;
+  } catch (error) {
+    if (axios.isAxiosError<ApiErrorResponse>(error)) {
+      const apiError = error.response?.data;
+      const issue = apiError?.issues?.[0]?.message;
+
+      throw new Error(
+        issue ?? apiError?.error ?? "The event could not be created.",
+      );
+    }
+
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error("The event could not be created.");
+  }
+}
 
 function CreateEventPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [createdEvent, setCreatedEvent] = useState<CreatedEvent | null>(null);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError(null);
-    setCreatedEvent(null);
-    setIsSubmitting(true);
-
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const startsAt = new Date(String(formData.get("startsAt")));
-    const presentation = formData.get("presentation");
-
-    try {
-      if (Number.isNaN(startsAt.getTime())) {
-        throw new Error("Enter a valid start date and time.");
-      }
-
-      if (presentation instanceof File && presentation.size > 0) {
-        const lowercaseName = presentation.name.toLowerCase();
-        const hasAllowedExtension = PRESENTATION_EXTENSIONS.some((extension) =>
-          lowercaseName.endsWith(extension),
-        );
-
-        if (!hasAllowedExtension) {
-          throw new Error("The presentation must be a PPT, PPTX, or PDF file.");
-        }
-
-        if (presentation.size > MAX_PRESENTATION_SIZE) {
-          throw new Error("The presentation must be 25 MB or smaller.");
-        }
-      } else {
-        formData.delete("presentation");
-      }
-
-      formData.set("startsAt", startsAt.toISOString());
-
-      const response = await fetch("/api/events", {
-        method: "POST",
-        body: formData,
-      });
-
-      const body = (await response.json()) as CreateEventResponse | ErrorResponse;
-
-      if (!response.ok) {
-        const apiError = body as ErrorResponse;
-        const issue = apiError.issues?.[0]?.message;
-        throw new Error(issue ?? apiError.error ?? "The event could not be created.");
-      }
-
-      if (!("event" in body)) {
-        throw new Error("The server returned an unexpected response.");
-      }
-
-      setCreatedEvent(body.event);
+  const queryClient = useQueryClient();
+  const formElementRef = useRef<HTMLFormElement>(null);
+  const form = useForm<CreateEventFormValues>({
+    resolver: zodResolver(createEventFormSchema),
+    defaultValues: {
+      name: "",
+      host: "",
+      category: "workshop",
+      startsAt: "",
+      location: "",
+      description: "",
+    },
+  });
+  const createEventMutation = useMutation({
+    mutationFn: createEvent,
+    onSuccess: async () => {
       form.reset();
-    } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "The event could not be created.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+      formElementRef.current?.reset();
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+  });
+
+  const onSubmit = form.handleSubmit((values) => {
+    createEventMutation.reset();
+    createEventMutation.mutate(values);
+  });
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
@@ -160,121 +191,193 @@ function CreateEventPage() {
             </CardDescription>
           </CardHeader>
 
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-5 py-1">
-              <div className="space-y-2">
-                <Label htmlFor="name">Event name</Label>
-                <Input
-                  id="name"
+          <form ref={formElementRef} onSubmit={onSubmit} noValidate>
+            <CardContent className="py-1">
+              <FieldGroup>
+                <Controller
                   name="name"
-                  placeholder="Portfolio Lab: Build a Hireable Case Study"
-                  required
-                  maxLength={200}
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor={field.name}>Event name</FieldLabel>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        placeholder="Portfolio Lab: Build a Hireable Case Study"
+                        maxLength={200}
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
                 />
-              </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="host">Host</Label>
-                  <Input
-                    id="host"
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Controller
                     name="host"
-                    placeholder="Hopamine Mods"
-                    required
-                    maxLength={100}
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Host</FieldLabel>
+                        <Input
+                          {...field}
+                          id={field.name}
+                          placeholder="Hopamine Mods"
+                          maxLength={100}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    name="category"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Category</FieldLabel>
+                        <Select
+                          name={field.name}
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger
+                            ref={field.ref}
+                            id={field.name}
+                            className="w-full"
+                            onBlur={field.onBlur}
+                            aria-invalid={fieldState.invalid}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="workshop">Workshop</SelectItem>
+                            <SelectItem value="trade">Information trade</SelectItem>
+                            <SelectItem value="collaboration">Collaboration</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select name="category" defaultValue="workshop">
-                    <SelectTrigger id="category" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="workshop">Workshop</SelectItem>
-                      <SelectItem value="trade">Information trade</SelectItem>
-                      <SelectItem value="collaboration">Collaboration</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Controller
+                    name="startsAt"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Start date and time</FieldLabel>
+                        <Input
+                          {...field}
+                          id={field.name}
+                          type="datetime-local"
+                          aria-invalid={fieldState.invalid}
+                        />
+                        <FieldDescription>
+                          The time is interpreted in your current time zone.
+                        </FieldDescription>
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
 
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="startsAt">Start date and time</Label>
-                  <Input id="startsAt" name="startsAt" type="datetime-local" required />
-                  <p className="text-xs text-muted-foreground">
-                    The time is interpreted in your current time zone.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
+                  <Controller
                     name="location"
-                    placeholder="Hopamine Discord · Stage channel"
-                    required
-                    maxLength={200}
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Location</FieldLabel>
+                        <Input
+                          {...field}
+                          id={field.name}
+                          placeholder="Hopamine Discord · Stage channel"
+                          maxLength={200}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
+                <Controller
                   name="description"
-                  placeholder="What will happen during the event, and what should participants bring?"
-                  required
-                  maxLength={5_000}
-                  className="min-h-32 resize-y"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                      <Textarea
+                        {...field}
+                        id={field.name}
+                        placeholder="What will happen during the event, and what should participants bring?"
+                        maxLength={5_000}
+                        className="min-h-32 resize-y"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="presentation">Presentation file (optional)</Label>
-                <Input
-                  id="presentation"
+                <Controller
                   name="presentation"
-                  type="file"
-                  accept=".ppt,.pptx,.pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor={field.name}>
+                        Presentation file (optional)
+                      </FieldLabel>
+                      <Input
+                        ref={field.ref}
+                        id={field.name}
+                        name={field.name}
+                        type="file"
+                        accept=".ppt,.pptx,.pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf"
+                        onBlur={field.onBlur}
+                        onChange={(event) => field.onChange(event.target.files)}
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <FieldDescription>
+                        Upload one PPT, PPTX, or PDF file up to 25 MB. Members will be
+                        able to access it from the event page.
+                      </FieldDescription>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Upload one PPT, PPTX, or PDF file up to 25 MB. Members will be able to
-                  access it from the event page.
-                </p>
-              </div>
 
-              {error && (
-                <Alert variant="destructive">
-                  <WarningCircle aria-hidden="true" />
-                  <AlertTitle>Event not created</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+                {createEventMutation.isError && (
+                  <Alert variant="destructive">
+                    <WarningCircle aria-hidden="true" />
+                    <AlertTitle>Event not created</AlertTitle>
+                    <AlertDescription>{createEventMutation.error.message}</AlertDescription>
+                  </Alert>
+                )}
 
-              {createdEvent && (
-                <Alert role="status">
-                  <CheckCircle aria-hidden="true" />
-                  <AlertTitle>Event created</AlertTitle>
-                  <AlertDescription>
-                    {createdEvent.name} was saved
-                    {createdEvent.presentation
-                      ? ` with ${createdEvent.presentation.name}.`
-                      : "."}
-                  </AlertDescription>
-                </Alert>
-              )}
+                {createEventMutation.isSuccess && (
+                  <Alert role="status">
+                    <CheckCircle aria-hidden="true" />
+                    <AlertTitle>Event created</AlertTitle>
+                    <AlertDescription>
+                      {createEventMutation.data.name} was saved
+                      {createEventMutation.data.presentation
+                        ? ` with ${createEventMutation.data.presentation.name}.`
+                        : "."}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </FieldGroup>
             </CardContent>
 
             <CardFooter className="justify-end gap-2">
               <Link to="/" className={buttonVariants({ variant: "ghost" })}>
                 Cancel
               </Link>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" disabled={createEventMutation.isPending}>
+                {createEventMutation.isPending ? (
                   <>
                     <CircleNotch className="animate-spin" aria-hidden="true" />
                     Creating…

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type { EventCategory, EventSummary, Submission } from "@/lib/events";
+import type { EventCategory, EventSummary, Submission } from "@/types/events";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
