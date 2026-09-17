@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { EventCard } from '@/components/site'
+import { EventCard } from '@/routes/-layout'
 import { events } from '@/mocks/data'
 
 export const Route = createFileRoute('/events/past')({

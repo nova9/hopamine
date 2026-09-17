@@ -1,7 +1,7 @@
 import { ArrowRight } from '@phosphor-icons/react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
-import { communityStats, EventCard, Stat } from '@/components/site'
+import { communityStats, EventCard, Stat } from '@/routes/-layout'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'

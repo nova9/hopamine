@@ -1,7 +1,7 @@
 import { CalendarBlank, MapPin } from '@phosphor-icons/react'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
-import { EventArtwork, formatEventDate } from '@/components/site'
+import { EventArtwork, formatEventDate } from '@/routes/-layout'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { getEventBySlug } from '@/mocks/data'

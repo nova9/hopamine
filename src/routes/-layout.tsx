@@ -54,7 +54,7 @@ export function formatEventDate(value: string) {
   return dateFormatter.format(new Date(value));
 }
 
-export function SiteLayout() {
+export function Layout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-blue-950/10 bg-white/95 backdrop-blur">
