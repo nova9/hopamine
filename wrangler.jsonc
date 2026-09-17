@@ -15,5 +15,11 @@
 			"database_name": "hopamine-db",
 			"database_id": "c2b083fa-f63a-4648-977e-ad4be47122b6"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "hopamine_files",
+			"bucket_name": "hopamine-files"
+		}
 	]
 }

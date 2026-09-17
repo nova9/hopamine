@@ -114,18 +114,44 @@ Only a moderator sees the delete action.
 5. The event automatically moves to Past events.
 6. Its details and submissions remain publicly accessible, but editing and new submissions are disabled.
 
-## Visual direction
+## UI system and visual direction
 
-The interface will follow the existing shadcn Lyra design system:
+The interface must use the existing **shadcn Lyra** design system. Implementation should compose official shadcn components instead of manually designing replacement controls or creating a separate custom component language.
 
-- White backgrounds for clarity and readability
-- Light blue surfaces for supporting sections
-- Deep blue for navigation, headings, and primary actions
-- Black or dark slate for body text
-- Yellow highlights for important community and action moments
-- Muted blue-gray styling for past events
-- Left-to-right layouts with strong alignment and readable spacing
-- Rounded event cards and panels, without making controls look excessively pill-shaped
+Rules for the interface:
+
+- Use the shadcn components already installed in `src/components/ui` whenever they match the required interaction.
+- Add an official shadcn primitive only when the product needs it and an equivalent is not already installed.
+- Do not hand-build substitutes for buttons, cards, inputs, text areas, labels, badges, breadcrumbs, separators, dialogs, alerts, tables, dropdown menus, pagination, empty states, skeletons, or toast feedback when a shadcn component exists.
+- Keep Lyra component proportions, typography, focus behavior, border treatment, and interaction states intact.
+- Customize pages primarily through component composition and layout utilities, not one-off visual treatments.
+- Use component variants and shared design tokens before adding custom colors or shadows.
+- Keep `src/index.css`, `vite.config.ts`, and the source code of installed `src/components/ui` primitives unchanged.
+- Keep custom CSS-like utilities limited to page layout, responsive grids, spacing, and the supplied Hopamine palette.
+- Do not create decorative HTML or SVG artwork to replace an event image. Display an uploaded image or a simple shadcn fallback state.
+
+The requested palette remains white, light blue, deep blue, black or dark slate, and restrained yellow highlights. Past events should use muted component variants rather than a separately designed card style.
+
+### Component mapping
+
+Use these shadcn primitives where applicable:
+
+- `Card` for event summaries, event details, submission rows, forms, and supporting panels
+- `Button` for navigation actions, form actions, uploads, editing, and deletion
+- `Badge` for upcoming/past status and event categories
+- `Breadcrumb` for event and submission hierarchy
+- `Input`, `Textarea`, and `Label` for forms
+- `Separator` for content divisions
+- `Dialog` or `AlertDialog` for moderator confirmation flows
+- `DropdownMenu` for moderator-only secondary actions
+- `Table` for dense submission or moderation views when rows need aligned columns
+- `Skeleton` for loading states
+- `Empty` for events or submission lists with no records
+- `Alert` for validation and API failures
+- `Sonner` for success and failure notifications after mutations
+- `Pagination` for the complete past-event archive when the data exceeds one page
+
+Native semantic elements should still be used for page structure, headings, lists, links, dates, and file downloads. Custom components are appropriate only for Hopamine-specific compositions such as `EventCard` or `SubmissionCard`, and those should be assembled from shadcn primitives.
 
 The project already includes the Lyra-styled shell, homepage event cards, mock data, a create-event form, and an initial Cloudflare D1 events API. The implementation below completes the routes, permissions, submissions, uploads, and persistent data flows.
 
@@ -134,8 +160,9 @@ The project already includes the Lyra-styled shell, homepage event cards, mock d
 - Preserve the current React, TanStack Router, Hono, Cloudflare Worker, and D1 architecture.
 - Reconcile the currently deleted event-detail, submissions, and past-events routes before building on them.
 - Keep `src/index.css` and `vite.config.ts` unchanged.
-- Continue using the installed shadcn Lyra components and Phosphor icons.
-- Preserve the white, blue, black, and yellow visual system, with subdued styling for past events.
+- Build Hopamine-specific views by composing shadcn Lyra primitives and Phosphor icons.
+- Avoid manually styled replacements for controls that exist in shadcn.
+- Preserve the white, blue, black, and yellow palette through component variants and existing tokens, with muted variants for past events.
 
 ## 2. Define the data and storage model
 

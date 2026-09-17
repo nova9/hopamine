@@ -3,21 +3,41 @@ import {
   CalendarPlus,
   CheckCircle,
   CircleNotch,
+  FileArrowUp,
+  Info,
   WarningCircle,
 } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/events/create")({
   component: CreateEventPage,
 });
+
+const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
+const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
 
 type EventCategory = "workshop" | "trade" | "collaboration";
 
@@ -31,6 +51,11 @@ type CreatedEvent = {
   description: string;
   category: EventCategory;
   status: "upcoming" | "past";
+  presentation: {
+    name: string;
+    type: string;
+    size: number;
+  } | null;
 };
 
 type CreateEventResponse = {
@@ -56,23 +81,35 @@ function CreateEventPage() {
     const form = event.currentTarget;
     const formData = new FormData(form);
     const startsAt = new Date(String(formData.get("startsAt")));
+    const presentation = formData.get("presentation");
 
     try {
       if (Number.isNaN(startsAt.getTime())) {
         throw new Error("Enter a valid start date and time.");
       }
 
+      if (presentation instanceof File && presentation.size > 0) {
+        const lowercaseName = presentation.name.toLowerCase();
+        const hasAllowedExtension = PRESENTATION_EXTENSIONS.some((extension) =>
+          lowercaseName.endsWith(extension),
+        );
+
+        if (!hasAllowedExtension) {
+          throw new Error("The presentation must be a PPT, PPTX, or PDF file.");
+        }
+
+        if (presentation.size > MAX_PRESENTATION_SIZE) {
+          throw new Error("The presentation must be 25 MB or smaller.");
+        }
+      } else {
+        formData.delete("presentation");
+      }
+
+      formData.set("startsAt", startsAt.toISOString());
+
       const response = await fetch("/api/events", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.get("name"),
-          host: formData.get("host"),
-          startsAt: startsAt.toISOString(),
-          location: formData.get("location"),
-          description: formData.get("description"),
-          category: formData.get("category"),
-        }),
+        body: formData,
       });
 
       const body = (await response.json()) as CreateEventResponse | ErrorResponse;
@@ -101,203 +138,179 @@ function CreateEventPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-5 py-10 lg:px-8 lg:py-16">
+    <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <Link
         to="/"
-        className={cn(
-          buttonVariants({ variant: "ghost" }),
-          "mb-6 -ml-2 text-blue-900",
-        )}
+        className={`${buttonVariants({ variant: "ghost", size: "sm" })} mb-4`}
       >
-        <ArrowLeft aria-hidden="true" />
+        <ArrowLeft data-icon="inline-start" aria-hidden="true" />
         Back to events
       </Link>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card className="overflow-hidden rounded-3xl border-blue-950/10 py-0 shadow-[0_24px_70px_-46px_rgba(15,42,90,0.75)]">
-          <CardHeader className="border-b border-blue-950/10 bg-[linear-gradient(135deg,#eef6ff_0%,#ffffff_70%,#fff8cc_100%)] px-6 py-7 sm:px-8">
-            <div className="mb-3 grid size-11 place-items-center rounded-2xl bg-blue-950 text-yellow-300 shadow-sm">
-              <CalendarPlus size={24} weight="duotone" />
-            </div>
-            <CardTitle className="font-heading text-3xl tracking-tight text-blue-950">
-              Create a new event
-            </CardTitle>
-            <p className="max-w-2xl text-base leading-7 text-slate-600">
-              Add the essential details now. You can share the event with the community
-              once it has been created.
-            </p>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <Card>
+          <CardHeader className="border-b">
+            <Badge variant="secondary" className="mb-2">
+              Moderator
+            </Badge>
+            <CardTitle className="text-2xl">Create an event</CardTitle>
+            <CardDescription className="max-w-2xl text-sm">
+              Add the schedule, event details, and an optional presentation for the
+              community.
+            </CardDescription>
           </CardHeader>
 
-          <CardContent className="px-6 py-7 sm:px-8 sm:py-8">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-5 py-1">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold text-blue-950">
-                  Event name
-                </Label>
+                <Label htmlFor="name">Event name</Label>
                 <Input
                   id="name"
                   name="name"
                   placeholder="Portfolio Lab: Build a Hireable Case Study"
                   required
                   maxLength={200}
-                  className="h-11 rounded-xl px-3 text-sm md:text-sm"
                 />
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="host" className="text-sm font-semibold text-blue-950">
-                    Host
-                  </Label>
+                  <Label htmlFor="host">Host</Label>
                   <Input
                     id="host"
                     name="host"
                     placeholder="Hopamine Mods"
                     required
                     maxLength={100}
-                    className="h-11 rounded-xl px-3 text-sm md:text-sm"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="category"
-                    className="text-sm font-semibold text-blue-950"
-                  >
-                    Category
-                  </Label>
-                  <select
-                    id="category"
-                    name="category"
-                    defaultValue="workshop"
-                    className="h-11 w-full rounded-xl border border-input bg-transparent px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
-                  >
-                    <option value="workshop">Workshop</option>
-                    <option value="trade">Information trade</option>
-                    <option value="collaboration">Collaboration</option>
-                  </select>
+                  <Label htmlFor="category">Category</Label>
+                  <Select name="category" defaultValue="workshop">
+                    <SelectTrigger id="category" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="workshop">Workshop</SelectItem>
+                      <SelectItem value="trade">Information trade</SelectItem>
+                      <SelectItem value="collaboration">Collaboration</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="startsAt"
-                    className="text-sm font-semibold text-blue-950"
-                  >
-                    Start date and time
-                  </Label>
-                  <Input
-                    id="startsAt"
-                    name="startsAt"
-                    type="datetime-local"
-                    required
-                    className="h-11 rounded-xl px-3 text-sm md:text-sm"
-                  />
-                  <p className="text-xs leading-5 text-slate-500">
-                    Uses your current time zone.
+                  <Label htmlFor="startsAt">Start date and time</Label>
+                  <Input id="startsAt" name="startsAt" type="datetime-local" required />
+                  <p className="text-xs text-muted-foreground">
+                    The time is interpreted in your current time zone.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="location"
-                    className="text-sm font-semibold text-blue-950"
-                  >
-                    Location
-                  </Label>
+                  <Label htmlFor="location">Location</Label>
                   <Input
                     id="location"
                     name="location"
                     placeholder="Hopamine Discord · Stage channel"
                     required
                     maxLength={200}
-                    className="h-11 rounded-xl px-3 text-sm md:text-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label
-                  htmlFor="description"
-                  className="text-sm font-semibold text-blue-950"
-                >
-                  Description
-                </Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   name="description"
                   placeholder="What will happen during the event, and what should participants bring?"
                   required
                   maxLength={5_000}
-                  className="min-h-36 resize-y rounded-xl px-3 py-3 text-sm leading-6 md:text-sm"
+                  className="min-h-32 resize-y"
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="presentation">Presentation file (optional)</Label>
+                <Input
+                  id="presentation"
+                  name="presentation"
+                  type="file"
+                  accept=".ppt,.pptx,.pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Upload one PPT, PPTX, or PDF file up to 25 MB. Members will be able to
+                  access it from the event page.
+                </p>
+              </div>
+
               {error && (
-                <div
-                  role="alert"
-                  className="flex gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800"
-                >
-                  <WarningCircle className="mt-0.5 shrink-0" size={20} weight="fill" />
-                  <span>{error}</span>
-                </div>
+                <Alert variant="destructive">
+                  <WarningCircle aria-hidden="true" />
+                  <AlertTitle>Event not created</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
 
               {createdEvent && (
-                <div
-                  role="status"
-                  className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900"
-                >
-                  <CheckCircle className="mt-0.5 shrink-0" size={20} weight="fill" />
-                  <span>
-                    <strong className="block font-semibold">Event created</strong>
-                    {createdEvent.name} was saved with the slug {createdEvent.slug}.
-                  </span>
-                </div>
+                <Alert role="status">
+                  <CheckCircle aria-hidden="true" />
+                  <AlertTitle>Event created</AlertTitle>
+                  <AlertDescription>
+                    {createdEvent.name} was saved
+                    {createdEvent.presentation
+                      ? ` with ${createdEvent.presentation.name}.`
+                      : "."}
+                  </AlertDescription>
+                </Alert>
               )}
+            </CardContent>
 
-              <div className="flex flex-col-reverse gap-3 border-t border-blue-950/10 pt-6 sm:flex-row sm:items-center sm:justify-end">
-                <Link
-                  to="/"
-                  className={cn(buttonVariants({ variant: "ghost" }), "h-11 rounded-xl px-5")}
-                >
-                  Cancel
-                </Link>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-11 rounded-xl px-6 text-sm"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <CircleNotch className="animate-spin" aria-hidden="true" />
-                      Creating event…
-                    </>
-                  ) : (
-                    <>
-                      <CalendarPlus aria-hidden="true" />
-                      Create event
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
+            <CardFooter className="justify-end gap-2">
+              <Link to="/" className={buttonVariants({ variant: "ghost" })}>
+                Cancel
+              </Link>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <CircleNotch className="animate-spin" aria-hidden="true" />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlus aria-hidden="true" />
+                    Create event
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </form>
         </Card>
 
-        <aside className="rounded-3xl bg-blue-950 p-6 text-white shadow-[0_24px_60px_-38px_rgba(15,42,90,0.9)] lg:sticky lg:top-24">
-          <p className="font-heading text-xs font-bold uppercase tracking-[0.18em] text-yellow-300">
-            Before publishing
-          </p>
-          <h2 className="mt-3 font-heading text-xl font-semibold">Make it easy to join</h2>
-          <ul className="mt-5 space-y-4 text-sm leading-6 text-blue-100">
-            <li>Use a specific title that says what participants will do.</li>
-            <li>Confirm the date and time in your own time zone.</li>
-            <li>Include the exact Discord channel or meeting location.</li>
-            <li>Explain what attendees should prepare or bring.</li>
-          </ul>
-        </aside>
+        <Card size="sm" className="lg:sticky lg:top-20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="size-4" aria-hidden="true" />
+              Before publishing
+            </CardTitle>
+            <CardDescription>Check these details before creating the event.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc space-y-2 pl-4 text-xs text-muted-foreground">
+              <li>Use a title that says what participants will do.</li>
+              <li>Confirm the date and time in your own time zone.</li>
+              <li>Include the exact Discord channel or meeting location.</li>
+              <li>Upload final slides only; the file becomes publicly available.</li>
+            </ul>
+          </CardContent>
+          <CardFooter className="text-xs text-muted-foreground">
+            <FileArrowUp className="mr-2 size-4" aria-hidden="true" />
+            PPT, PPTX, or PDF · 25 MB maximum
+          </CardFooter>
+        </Card>
       </div>
     </main>
   );

@@ -20,6 +20,10 @@ export const eventRowSchema = createEventSchema.omit({ startsAt: true }).extend(
   id: z.string(),
   slug: z.string(),
   starts_at: z.string(),
+  presentation_key: z.string().nullable(),
+  presentation_name: z.string().nullable(),
+  presentation_type: z.string().nullable(),
+  presentation_size: z.number().int().nonnegative().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 });

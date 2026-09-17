@@ -12,17 +12,19 @@ import {
 import { Link, Outlet } from "@tanstack/react-router";
 
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import type { EventCategory, EventSummary, Submission } from "@/mocks/types";
+import type { EventCategory, EventSummary, Submission } from "@/lib/events";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
@@ -31,23 +33,11 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 
 const categoryDetails: Record<
   EventCategory,
-  { label: string; icon: typeof Lightbulb; artClass: string }
+  { label: string; icon: typeof Lightbulb }
 > = {
-  workshop: {
-    label: "Workshop",
-    icon: Lightbulb,
-    artClass: "event-art-workshop",
-  },
-  trade: {
-    label: "Information trade",
-    icon: ChatCircleDots,
-    artClass: "event-art-trade",
-  },
-  collaboration: {
-    label: "Collaboration",
-    icon: UsersThree,
-    artClass: "event-art-collaboration",
-  },
+  workshop: { label: "Workshop", icon: Lightbulb },
+  trade: { label: "Information trade", icon: ChatCircleDots },
+  collaboration: { label: "Collaboration", icon: UsersThree },
 };
 
 export function formatEventDate(value: string) {
@@ -56,54 +46,62 @@ export function formatEventDate(value: string) {
 
 export function Layout() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-blue-950/10 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="flex items-center gap-3 font-heading text-sm font-bold tracking-tight text-blue-950"
+            className="flex min-w-0 items-center gap-2 font-heading text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <span className="grid size-9 place-items-center rounded-xl bg-blue-950 text-sm text-yellow-300 shadow-sm">
+            <Badge className="size-8 px-0 text-sm" aria-hidden="true">
               H+
+            </Badge>
+            <span className="truncate">
+              <span className="hidden sm:inline">#HOPAMINE Virtual Events</span>
+              <span className="sm:hidden">#HOPAMINE</span>
             </span>
-            <span className="hidden sm:inline">#HOPAMINE Virtual Events</span>
-            <span className="sm:hidden">#HOPAMINE</span>
           </Link>
 
           <nav aria-label="Primary navigation" className="flex items-center gap-1">
             <Link
               to="/events/create"
-              className={buttonVariants({ variant: "ghost" })}
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
               Create event
             </Link>
             <a
-              className={buttonVariants({ variant: "ghost" })}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "sm" }),
+                "hidden sm:inline-flex",
+              )}
               href="mailto:hello@hopamine.community"
             >
               Contact
             </a>
             <a
-              className={buttonVariants({ variant: "default" })}
+              className={buttonVariants({ variant: "default", size: "sm" })}
               href="https://discord.com"
               target="_blank"
               rel="noreferrer"
             >
               Discord
-              <ArrowRight aria-hidden="true" />
+              <ArrowRight data-icon="inline-end" aria-hidden="true" />
             </a>
           </nav>
         </div>
       </header>
 
-      <Outlet />
+      <div className="flex-1">
+        <Outlet />
+      </div>
 
-      <footer className="mt-20 border-t border-blue-950/10 bg-blue-950 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-10 lg:px-8">
-          <p className="font-heading text-lg font-semibold">
+      <footer className="mt-16">
+        <Separator />
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-1 px-4 py-8 sm:px-6 lg:px-8">
+          <p className="font-heading text-sm font-medium">
             A community that turns optimism into action.
           </p>
-          <p className="text-sm text-blue-200">Hope + Dopamine</p>
+          <p className="text-xs text-muted-foreground">Hope + Dopamine</p>
         </div>
       </footer>
     </div>
@@ -117,19 +115,14 @@ export function EventArtwork({ event }: { event: EventSummary }) {
   return (
     <div
       className={cn(
-        "event-art relative grid min-h-44 place-items-center overflow-hidden",
-        details.artClass,
-        event.status === "past" && "saturate-50",
+        "flex aspect-video flex-col items-center justify-center gap-3 border-b bg-muted/50 text-muted-foreground",
+        event.status === "past" && "opacity-70 grayscale",
       )}
-      aria-hidden="true"
+      aria-label={`${details.label} event image placeholder`}
+      role="img"
     >
-      <span className="event-art-grid" />
-      <div className="relative grid size-20 place-items-center rounded-3xl border border-white/40 bg-white/20 text-white shadow-xl backdrop-blur-sm">
-        <Icon size={38} weight="duotone" />
-      </div>
-      <span className="absolute bottom-4 left-4 font-heading text-xs font-semibold uppercase tracking-[0.18em] text-white/85">
-        {details.label}
-      </span>
+      <Icon className="size-9" weight="duotone" aria-hidden="true" />
+      <Badge variant="outline">{details.label}</Badge>
     </div>
   );
 }
@@ -137,50 +130,41 @@ export function EventArtwork({ event }: { event: EventSummary }) {
 export function EventCard({ event }: { event: EventSummary }) {
   return (
     <Card
-      className={cn(
-        "overflow-hidden rounded-3xl border-0 py-0 shadow-[0_16px_50px_-32px_rgba(15,42,90,0.55)] ring-blue-950/10 transition duration-200 hover:-translate-y-1 hover:shadow-[0_24px_60px_-30px_rgba(15,42,90,0.5)]",
-        event.status === "past" && "bg-slate-50",
-      )}
+      size="sm"
+      className={cn("relative", event.status === "past" && "bg-muted/30")}
     >
       <EventArtwork event={event} />
-      <CardHeader className="gap-3 px-5 pt-5">
-        <div className="flex items-center justify-between gap-3">
-          <Badge
-            variant={event.status === "upcoming" ? "default" : "secondary"}
-            className="rounded-full px-2.5 capitalize"
+      <CardHeader>
+        <CardTitle className="text-base leading-snug">
+          <a
+            href={`/events/${event.slug}`}
+            className="outline-none after:absolute after:inset-0 focus-visible:underline"
           >
-            {event.status}
-          </Badge>
-          <span className="text-xs font-medium text-muted-foreground">
-            Hosted by {event.host}
-          </span>
-        </div>
-        <CardTitle className="font-heading text-xl leading-snug text-blue-950">
-          {event.name}
+            {event.name}
+          </a>
         </CardTitle>
-        <CardDescription className="line-clamp-2 text-sm leading-6">
-          {event.description}
-        </CardDescription>
+        <CardDescription>Hosted by {event.host}</CardDescription>
+        <CardAction>
+          <Badge variant={event.status === "upcoming" ? "default" : "secondary"}>
+            {event.status === "upcoming" ? "Upcoming" : "Past"}
+          </Badge>
+        </CardAction>
       </CardHeader>
-      <CardContent className="space-y-2 px-5 text-sm text-slate-600">
+      <CardContent className="space-y-2 text-muted-foreground">
         <p className="flex items-start gap-2">
-          <CalendarBlank className="mt-0.5 shrink-0 text-blue-700" weight="bold" />
+          <CalendarBlank className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <time dateTime={event.startsAt}>{formatEventDate(event.startsAt)}</time>
         </p>
         <p className="flex items-start gap-2">
-          <MapPin className="mt-0.5 shrink-0 text-blue-700" weight="bold" />
-          {event.location}
+          <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{event.location}</span>
         </p>
       </CardContent>
-      <CardFooter className="border-blue-950/10 bg-blue-50/60 px-5 py-4">
-        <Link
-          to="/events/$eventSlug"
-          params={{ eventSlug: event.slug }}
-          className="flex w-full items-center justify-between font-heading text-sm font-semibold text-blue-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-        >
+      <CardFooter>
+        <span className="flex w-full items-center justify-between font-medium">
           View event
-          <ArrowRight aria-hidden="true" />
-        </Link>
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </span>
       </CardFooter>
     </Card>
   );
@@ -194,26 +178,29 @@ export function SubmissionCard({
   eventSlug: string;
 }) {
   return (
-    <Card className="rounded-2xl py-0 ring-blue-950/10 transition-colors hover:bg-blue-50/60">
-      <Link
-        to="/events/$eventSlug/submissions/$submissionId"
-        params={{ eventSlug, submissionId: submission.id }}
-        className="grid gap-4 p-5 outline-none focus-visible:ring-2 focus-visible:ring-blue-600 sm:grid-cols-[auto_1fr_auto] sm:items-center"
-      >
-        <span className="grid size-12 place-items-center rounded-xl bg-blue-100 text-blue-800">
-          <FileText size={24} weight="duotone" />
-        </span>
-        <span>
-          <span className="block font-heading text-base font-semibold text-blue-950">
-            {submission.title}
-          </span>
-          <span className="mt-1 block text-sm text-muted-foreground">
-            {submission.username} · Posted {formatEventDate(submission.createdAt)}
-          </span>
-        </span>
-        <ArrowRight className="hidden text-blue-700 sm:block" aria-hidden="true" />
-      </Link>
-    </Card>
+    <a
+      href={`/events/${eventSlug}/submissions/${submission.id}`}
+      className="block outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    >
+      <Card size="sm">
+        <CardHeader>
+          <div className="flex items-start gap-3">
+            <Badge variant="secondary" className="size-8 px-0" aria-hidden="true">
+              <FileText className="size-4" />
+            </Badge>
+            <div className="min-w-0">
+              <CardTitle>{submission.title}</CardTitle>
+              <CardDescription className="mt-1">
+                {submission.username} · Posted {formatEventDate(submission.createdAt)}
+              </CardDescription>
+            </div>
+          </div>
+          <CardAction>
+            <ArrowRight className="size-4 text-muted-foreground" aria-hidden="true" />
+          </CardAction>
+        </CardHeader>
+      </Card>
+    </a>
   );
 }
 
@@ -227,15 +214,17 @@ export function Stat({
   label: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="grid size-10 place-items-center rounded-xl bg-yellow-300 text-blue-950">
-        <Icon size={20} weight="bold" />
-      </span>
-      <span>
-        <span className="block font-heading text-lg font-bold text-blue-950">{value}</span>
-        <span className="block text-xs text-slate-500">{label}</span>
-      </span>
-    </div>
+    <Card size="sm">
+      <CardContent className="flex items-center gap-3">
+        <Badge variant="secondary" className="size-8 px-0" aria-hidden="true">
+          <Icon className="size-4" weight="duotone" />
+        </Badge>
+        <span>
+          <span className="block font-heading text-base font-medium">{value}</span>
+          <span className="block text-xs text-muted-foreground">{label}</span>
+        </span>
+      </CardContent>
+    </Card>
   );
 }
 
