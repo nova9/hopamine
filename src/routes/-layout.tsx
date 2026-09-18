@@ -12,6 +12,7 @@ import { Link, Outlet } from "@tanstack/react-router";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
@@ -55,9 +56,7 @@ export function Layout() {
             to="/"
             className="flex min-w-0 items-center gap-2 font-heading text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <Badge className="size-8 px-0 text-sm" aria-hidden="true">
-              H+
-            </Badge>
+            <Logo className="size-8 rounded-md" title="Hopamine" />
             <span className="truncate">
               <span className="hidden sm:inline">#HOPAMINE Virtual Events</span>
               <span className="sm:hidden">#HOPAMINE</span>
