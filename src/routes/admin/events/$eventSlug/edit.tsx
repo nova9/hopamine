@@ -52,9 +52,9 @@ function EditEventPage() {
         throw new Error(body.error ?? "The event could not be updated.");
     },
     onSuccess: async () => {
+      await nav({ to: "/events/$eventSlug", params: { eventSlug } });
       await client.invalidateQueries({ queryKey: ["events"] });
       toast.success("Event updated");
-      nav({ to: "/events/$eventSlug", params: { eventSlug } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
