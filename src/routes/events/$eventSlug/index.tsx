@@ -115,7 +115,7 @@ function EventDetailPage() {
           {event.presentation && (
             <Card size="sm">
               <CardHeader>
-                <CardTitle>Event presentation</CardTitle>
+                <CardTitle>Event file</CardTitle>
                 <CardDescription>
                   {event.presentation.name} · {formatFileSize(event.presentation.size)}
                 </CardDescription>

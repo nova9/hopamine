@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { convertFormDataImages } from "@/lib/image";
+import { DOCUMENT_ACCEPT, DOCUMENT_TYPE_LABEL } from "@/lib/upload-policy";
 
 export const Route = createFileRoute("/admin/events/$eventSlug/edit")({
   component: EditEventPage,
@@ -166,14 +167,17 @@ function EditEventPage() {
               </Field>
               <Field>
                 <FieldLabel htmlFor="presentation">
-                  Replace presentation
+                  Replace event file
                 </FieldLabel>
                 <Input
                   id="presentation"
                   name="presentation"
                   type="file"
-                  accept=".ppt,.pptx,.pdf"
+                  accept={DOCUMENT_ACCEPT}
                 />
+                <FieldDescription>
+                  Upload one {DOCUMENT_TYPE_LABEL} file up to 25 MB.
+                </FieldDescription>
               </Field>
             </FieldGroup>
           </CardContent>

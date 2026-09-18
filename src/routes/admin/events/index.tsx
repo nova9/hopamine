@@ -3,13 +3,26 @@ import {
   CalendarBlank,
   CalendarPlus,
   LockKey,
+  Trash,
 } from "@phosphor-icons/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
@@ -29,9 +42,26 @@ export const Route = createFileRoute("/admin/events/")({
 
 function AdminEventsPage() {
   const { moderator } = useAuth();
+  const queryClient = useQueryClient();
   const eventsQuery = useQuery({
     queryKey: ["events"],
     queryFn: getEvents,
+  });
+  const deleteEvent = useMutation({
+    mutationFn: async (eventSlug: string) => {
+      const response = await fetch(
+        `/api/admin/events/${encodeURIComponent(eventSlug)}`,
+        { method: "DELETE" },
+      );
+      if (response.ok) return;
+      const body = (await response.json()) as { error?: string };
+      throw new Error(body.error ?? "The event could not be deleted.");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      toast.success("Event deleted");
+    },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const events = eventsQuery.data ?? [];
@@ -112,7 +142,38 @@ function AdminEventsPage() {
                   </Badge>
                 </CardAction>
               </CardHeader>
-              <CardFooter className="justify-end">
+              <CardFooter className="justify-end gap-2">
+                <AlertDialog>
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        variant="destructive"
+                        disabled={deleteEvent.isPending}
+                      />
+                    }
+                  >
+                    <Trash data-icon="inline-start" aria-hidden="true" />
+                    Delete
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete {event.name}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This permanently deletes the event, its submissions, and
+                        every uploaded file. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        variant="destructive"
+                        onClick={() => deleteEvent.mutate(event.slug)}
+                      >
+                        Delete event
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <a href={`/events/${event.slug}`} className={buttonVariants({ variant: "outline" })}>
                   View public page
                   <ArrowRight data-icon="inline-end" aria-hidden="true" />

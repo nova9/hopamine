@@ -21,14 +21,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { convertFormDataImages } from "@/lib/image";
+import { DOCUMENT_ACCEPT, DOCUMENT_TYPE_LABEL } from "@/lib/upload-policy";
 
 export const Route = createFileRoute("/events/$eventSlug/submissions/new")({
   component: NewSubmissionPage,
 });
 async function submit(slug: string, form: HTMLFormElement) {
   const data = new FormData(form);
-  await convertFormDataImages(data, "files");
   const response = await fetch(
     `/api/events/${encodeURIComponent(slug)}/submissions`,
     { method: "POST", body: data },
@@ -143,11 +142,11 @@ function NewSubmissionPage() {
                   type="file"
                   multiple
                   required
-                  accept=".doc,.docx,.pdf,.png,.jpg,.jpeg,image/png,image/jpeg"
+                  accept={DOCUMENT_ACCEPT}
                 />
                 <FieldDescription>
-                  Upload 1–5 DOC, DOCX, PDF, PNG, or JPEG files. Images are
-                  converted to AVIF before upload. Maximum 10 MB each and 25 MB total.
+                  Upload 1–5 {DOCUMENT_TYPE_LABEL} files. Maximum 10 MB each
+                  and 25 MB total.
                 </FieldDescription>
               </Field>
             </FieldGroup>

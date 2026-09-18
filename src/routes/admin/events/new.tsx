@@ -43,6 +43,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { convertImageToAvif } from "@/lib/image";
+import {
+  DOCUMENT_ACCEPT,
+  DOCUMENT_TYPE_LABEL,
+  hasAllowedDocumentExtension,
+} from "@/lib/upload-policy";
 import type {
   ApiErrorResponse,
   CreatedEvent,
@@ -55,7 +60,6 @@ export const Route = createFileRoute("/admin/events/new")({
 
 const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg"];
 
 const createEventFormSchema = z.object({
@@ -78,22 +82,17 @@ const createEventFormSchema = z.object({
 
       if (!presentation) return;
 
-      const lowercaseName = presentation.name.toLowerCase();
-      const hasAllowedExtension = PRESENTATION_EXTENSIONS.some((extension) =>
-        lowercaseName.endsWith(extension),
-      );
-
-      if (!hasAllowedExtension) {
+      if (!hasAllowedDocumentExtension(presentation.name)) {
         context.addIssue({
           code: "custom",
-          message: "The presentation must be a PPT, PPTX, or PDF file.",
+          message: `The event file must be a ${DOCUMENT_TYPE_LABEL} file.`,
         });
       }
 
       if (presentation.size > MAX_PRESENTATION_SIZE) {
         context.addIssue({
           code: "custom",
-          message: "The presentation must be 25 MB or smaller.",
+          message: "The event file must be 25 MB or smaller.",
         });
       }
     })
@@ -223,7 +222,7 @@ function CreateEventPage() {
             </Badge>
             <CardTitle className="text-2xl">Create an event</CardTitle>
             <CardDescription className="max-w-2xl text-sm">
-              Add the schedule, event details, and an optional presentation for the
+              Add the schedule, event details, and an optional event file for the
               community.
             </CardDescription>
           </CardHeader>
@@ -365,21 +364,21 @@ function CreateEventPage() {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel htmlFor={field.name}>
-                        Presentation file (optional)
+                        Event file (optional)
                       </FieldLabel>
                       <Input
                         ref={field.ref}
                         id={field.name}
                         name={field.name}
                         type="file"
-                        accept=".ppt,.pptx,.pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf"
+                        accept={DOCUMENT_ACCEPT}
                         onBlur={field.onBlur}
                         onChange={(event) => field.onChange(event.target.files)}
                         aria-invalid={fieldState.invalid}
                       />
                       <FieldDescription>
-                        Upload one PPT, PPTX, or PDF file up to 25 MB. Members will be
-                        able to access it from the event page.
+                        Upload one {DOCUMENT_TYPE_LABEL} file up to 25 MB. Members
+                        will be able to access it from the event page.
                       </FieldDescription>
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -474,12 +473,12 @@ function CreateEventPage() {
               <li>Use a title that says what participants will do.</li>
               <li>Confirm the date and time in your own time zone.</li>
               <li>Include the exact Discord channel or meeting location.</li>
-              <li>Upload final slides only; the file becomes publicly available.</li>
+              <li>Upload only the final event file; it becomes publicly available.</li>
             </ul>
           </CardContent>
           <CardFooter className="text-xs text-muted-foreground">
             <FileArrowUp className="mr-2 size-4" aria-hidden="true" />
-            PPT, PPTX, or PDF · 25 MB maximum
+            {DOCUMENT_TYPE_LABEL} · 25 MB maximum
           </CardFooter>
         </Card>
       </div>

@@ -10,14 +10,12 @@ import type {
 } from "../types";
 import { hasStorageCapacity, reserveR2Writes } from "../usage";
 import { createDownloadResponse, sanitizeFilename } from "../utils";
+import {
+  DOCUMENT_TYPE_LABEL,
+  hasAllowedDocumentExtension,
+  hasAllowedDocumentMimeType,
+} from "../../src/lib/upload-policy";
 
-const SUBMISSION_EXTENSIONS = [".doc", ".docx", ".pdf", ".avif"];
-const SUBMISSION_TYPES = new Set([
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/pdf",
-  "image/avif",
-]);
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 const MAX_FILES = 5;
@@ -51,11 +49,11 @@ function toSubmissionResponse(row: SubmissionRow, files: SubmissionFileRow[]) {
 }
 
 function getFileError(file: File) {
-  const hasAllowedExtension = SUBMISSION_EXTENSIONS.some((extension) =>
-    file.name.toLowerCase().endsWith(extension),
-  );
-  if (!hasAllowedExtension || (file.type && !SUBMISSION_TYPES.has(file.type))) {
-    return `${file.name} is not a DOC, DOCX, PDF, or AVIF file.`;
+  if (
+    !hasAllowedDocumentExtension(file.name) ||
+    !hasAllowedDocumentMimeType(file.type)
+  ) {
+    return `${file.name} is not a ${DOCUMENT_TYPE_LABEL} file.`;
   }
   if (file.size > MAX_FILE_SIZE) {
     return `${file.name} exceeds the 10 MB limit.`;

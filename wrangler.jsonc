@@ -19,10 +19,6 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"],
   },
-  "limits": {
-    "cpu_ms": 10,
-    "subrequests": 15,
-  },
   "ratelimits": [
     {
       "name": "SUBMISSION_RATE_LIMITER",

@@ -9,14 +9,13 @@ import type {
 } from "../types";
 import { hasStorageCapacity, reserveR2Writes } from "../usage";
 import { sanitizeFilename, slugify } from "../utils";
+import {
+  DOCUMENT_TYPE_LABEL,
+  hasAllowedDocumentExtension,
+  hasAllowedDocumentMimeType,
+} from "../../src/lib/upload-policy";
 
 const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
-const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
-const PRESENTATION_TYPES = new Set([
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "application/pdf",
-]);
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const IMAGE_EXTENSIONS = [".avif"];
 const IMAGE_TYPES = new Set(["image/avif"]);
@@ -57,20 +56,15 @@ async function parseEventForm(c: Context<AppEnvironment>) {
 }
 
 function getPresentationError(file: File) {
-  const lowercaseName = file.name.toLowerCase();
-  const hasAllowedExtension = PRESENTATION_EXTENSIONS.some((extension) =>
-    lowercaseName.endsWith(extension),
-  );
-
   if (
-    !hasAllowedExtension ||
-    (file.type && !PRESENTATION_TYPES.has(file.type))
+    !hasAllowedDocumentExtension(file.name) ||
+    !hasAllowedDocumentMimeType(file.type)
   ) {
-    return "The presentation must be a PPT, PPTX, or PDF file.";
+    return `The event file must be a ${DOCUMENT_TYPE_LABEL} file.`;
   }
 
   if (file.size > MAX_PRESENTATION_SIZE) {
-    return "The presentation must be 25 MB or smaller.";
+    return "The event file must be 25 MB or smaller.";
   }
 
   return null;
@@ -317,6 +311,46 @@ export function registerAdminRoutes(app: Hono<AppEnvironment>) {
         submissionCount: 0,
       },
     });
+  });
+
+  app.delete("/api/admin/events/:eventSlug", async (c) => {
+    const event = await c.env.hopamine_db
+      .prepare(
+        "SELECT id, presentation_key, image_key FROM events WHERE slug=?1",
+      )
+      .bind(c.req.param("eventSlug"))
+      .first<{
+        id: string;
+        presentation_key: string | null;
+        image_key: string | null;
+      }>();
+    if (!event) return c.json({ error: "Event not found" }, 404);
+
+    const submissionFiles = await c.env.hopamine_db
+      .prepare(
+        `SELECT sf.storage_key
+         FROM submission_files sf
+         JOIN submissions s ON s.id=sf.submission_id
+         WHERE s.event_id=?1`,
+      )
+      .bind(event.id)
+      .all<SubmissionStorageKeyRow>();
+
+    await c.env.hopamine_db
+      .prepare("DELETE FROM events WHERE id=?1")
+      .bind(event.id)
+      .run();
+
+    const storageKeys = [
+      event.presentation_key,
+      event.image_key,
+      ...submissionFiles.results.map((file) => file.storage_key),
+    ].filter((key): key is string => Boolean(key));
+    await Promise.all(
+      storageKeys.map((key) => c.env.hopamine_files.delete(key)),
+    );
+
+    return c.body(null, 204);
   });
 
   app.delete("/api/admin/submissions/:submissionId", async (c) => {

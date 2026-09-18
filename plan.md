@@ -90,7 +90,7 @@ Any member can contribute to an upcoming event by entering:
 - Short description
 - One or more files
 
-The form accepts `.doc`, `.docx`, `.pdf`, and common browser image formats. Images are converted to AVIF in the client before upload, so the Worker stores and validates `.avif` submission images. Web links should be placed in the description. After validation and upload, the new submission becomes publicly visible under the event.
+The form accepts `.doc`, `.docx`, `.ppt`, `.pptx`, and `.pdf`. Web links should be placed in the description. After validation and upload, the new submission becomes publicly visible under the event.
 
 ### 5. Read or download a submission
 
@@ -179,7 +179,7 @@ Extend D1 with:
   - Submission ID, filename, MIME type, size, and storage key
 - Optional moderation fields such as deletion timestamp and moderator audit information
 
-Use Cloudflare R2 for uploaded event images and submission files. Enforce `.doc`, `.docx`, `.pdf`, and `.avif` at the Worker boundary, with explicit size and file-count limits. The client converts selected PNG and JPEG images to AVIF before upload.
+Use Cloudflare R2 for uploaded event images, event presentations, and submission files. Event presentations and submissions share the `.doc`, `.docx`, `.ppt`, `.pptx`, and `.pdf` allowlist, with explicit size and file-count limits. Only dedicated event images accept PNG and JPEG input and convert it to AVIF before upload.
 
 Calculate event status from its date so an upcoming event automatically becomes a past event.
 
@@ -299,4 +299,4 @@ Verify:
 
 ## Requirement decision
 
-Submission uploads allow `doc`, `docx`, `pdf`, and client-converted AVIF images. Event presentation uploads separately allow PPT, PPTX, and PDF.
+Submission and event-presentation uploads both allow `doc`, `docx`, `ppt`, `pptx`, and `pdf`. Only dedicated event images are converted from PNG or JPEG to AVIF.

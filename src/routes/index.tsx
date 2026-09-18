@@ -28,7 +28,7 @@ function HomePage() {
   const communityStats = [
     { icon: CalendarBlank, value: String(upcomingEvents.length), label: "upcoming events" },
     { icon: FileText, value: "Public", label: "shared resources" },
-    { icon: Briefcase, value: String(pastEvents.length), label: "past sessions" },
+    { icon: Briefcase, value: String(pastEvents.length), label: "past events" },
   ];
 
   return (
