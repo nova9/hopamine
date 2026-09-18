@@ -84,7 +84,7 @@ export function Layout() {
             )}
             <a
               className={buttonVariants({ variant: "default", size: "sm" })}
-              href="https://discord.com"
+              href="https://discord.gg/dHRr6nVCp"
               target="_blank"
               rel="noreferrer"
             >
