@@ -63,7 +63,10 @@ export function Layout() {
             </span>
           </Link>
 
-          <nav aria-label="Primary navigation" className="flex items-center gap-1">
+          <nav
+            aria-label="Primary navigation"
+            className="flex items-center gap-1"
+          >
             {isModerator ? (
               <Link
                 to="/admin/events"
@@ -79,15 +82,6 @@ export function Layout() {
                 Moderator sign in
               </a>
             )}
-            <a
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "hidden sm:inline-flex",
-              )}
-              href="mailto:hello@hopamine.community"
-            >
-              Contact
-            </a>
             <a
               className={buttonVariants({ variant: "default", size: "sm" })}
               href="https://discord.com"
@@ -168,15 +162,22 @@ export function EventCard({ event }: { event: EventSummary }) {
         </CardTitle>
         <CardDescription>Hosted by {event.host}</CardDescription>
         <CardAction>
-          <Badge variant={event.status === "upcoming" ? "default" : "secondary"}>
+          <Badge
+            variant={event.status === "upcoming" ? "default" : "secondary"}
+          >
             {event.status === "upcoming" ? "Upcoming" : "Past"}
           </Badge>
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-2 text-muted-foreground">
         <p className="flex items-start gap-2">
-          <CalendarBlank className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <time dateTime={event.startsAt}>{formatEventDate(event.startsAt)}</time>
+          <CalendarBlank
+            className="mt-0.5 size-4 shrink-0"
+            aria-hidden="true"
+          />
+          <time dateTime={event.startsAt}>
+            {formatEventDate(event.startsAt)}
+          </time>
         </p>
         <p className="flex items-start gap-2">
           <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -208,18 +209,26 @@ export function SubmissionCard({
       <Card size="sm">
         <CardHeader>
           <div className="flex items-start gap-3">
-            <Badge variant="secondary" className="size-8 px-0" aria-hidden="true">
+            <Badge
+              variant="secondary"
+              className="size-8 px-0"
+              aria-hidden="true"
+            >
               <FileText className="size-4" />
             </Badge>
             <div className="min-w-0">
               <CardTitle>{submission.title}</CardTitle>
               <CardDescription className="mt-1">
-                {submission.username} · Posted {formatEventDate(submission.createdAt)}
+                {submission.username} · Posted{" "}
+                {formatEventDate(submission.createdAt)}
               </CardDescription>
             </div>
           </div>
           <CardAction>
-            <ArrowRight className="size-4 text-muted-foreground" aria-hidden="true" />
+            <ArrowRight
+              className="size-4 text-muted-foreground"
+              aria-hidden="true"
+            />
           </CardAction>
         </CardHeader>
       </Card>
@@ -243,7 +252,9 @@ export function Stat({
           <Icon className="size-4" weight="duotone" />
         </Badge>
         <span>
-          <span className="block font-heading text-base font-medium">{value}</span>
+          <span className="block font-heading text-base font-medium">
+            {value}
+          </span>
           <span className="block text-xs text-muted-foreground">{label}</span>
         </span>
       </CardContent>
