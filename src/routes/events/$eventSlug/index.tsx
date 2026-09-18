@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getEvent } from "@/lib/events";
+import { useAuth } from "@/contexts/auth-context";
 import { EventArtwork, formatEventDate } from "@/routes/-layout";
 
 export const Route = createFileRoute("/events/$eventSlug/")({
@@ -44,6 +45,7 @@ function formatFileSize(bytes: number) {
 
 function EventDetailPage() {
   const { eventSlug } = Route.useParams();
+  const { isModerator } = useAuth();
   const eventQuery = useQuery({
     queryKey: ["events", eventSlug],
     queryFn: () => getEvent(eventSlug),
@@ -183,6 +185,11 @@ function EventDetailPage() {
               </a>
             </CardFooter>
           </Card>
+          {isModerator && event.status === "upcoming" && (
+            <a href={`/admin/events/${event.slug}/edit`} className={`${buttonVariants({ variant: "outline" })} w-full`}>
+              Edit event
+            </a>
+          )}
         </aside>
       </div>
     </main>

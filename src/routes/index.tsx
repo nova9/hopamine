@@ -1,4 +1,4 @@
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, Briefcase, CalendarBlank, FileText } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getEvents } from "@/lib/events";
-import { communityStats, EventCard, Stat } from "@/routes/-layout";
+import { EventCard, Stat } from "@/routes/-layout";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -25,6 +25,11 @@ function HomePage() {
     .toSorted(
       (first, second) => Date.parse(second.startsAt) - Date.parse(first.startsAt),
     );
+  const communityStats = [
+    { icon: CalendarBlank, value: String(upcomingEvents.length), label: "upcoming events" },
+    { icon: FileText, value: "Public", label: "shared resources" },
+    { icon: Briefcase, value: String(pastEvents.length), label: "past sessions" },
+  ];
 
   return (
     <main>

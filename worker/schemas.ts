@@ -24,8 +24,21 @@ export const eventRowSchema = createEventSchema.omit({ startsAt: true }).extend(
   presentation_name: z.string().nullable(),
   presentation_type: z.string().nullable(),
   presentation_size: z.number().int().nonnegative().nullable(),
+  image_key: z.string().nullable(),
+  image_name: z.string().nullable(),
+  image_type: z.string().nullable(),
+  image_size: z.number().int().nonnegative().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
+});
+
+export const updateEventSchema = createEventSchema;
+
+export const createSubmissionSchema = z.object({
+  username: z.string().trim().min(1).max(80),
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().min(1).max(5_000),
+  submittedAt: z.string().refine((value) => !Number.isNaN(Date.parse(value)), "Invalid submission date"),
 });
 
 export const countRowSchema = z.object({

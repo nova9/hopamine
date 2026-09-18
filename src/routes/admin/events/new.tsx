@@ -95,6 +95,11 @@ const createEventFormSchema = z.object({
       }
     })
     .optional(),
+  image: z.custom<FileList | undefined>().superRefine((files, context) => {
+    const image = files?.item(0); if (!image) return;
+    if (!image.name.toLowerCase().endsWith(".png")) context.addIssue({code:"custom",message:"The event image must be a PNG file."});
+    if (image.size > 10 * 1024 * 1024) context.addIssue({code:"custom",message:"The event image must be 10 MB or smaller."});
+  }).optional(),
 });
 
 type CreateEventFormValues = z.infer<typeof createEventFormSchema>;
@@ -113,6 +118,7 @@ async function createEvent(values: CreateEventFormValues): Promise<CreatedEvent>
   if (presentation) {
     formData.set("presentation", presentation);
   }
+  const image = values.image?.item(0); if (image) formData.set("image", image);
 
   try {
     const { data } = await axios.post<CreateEventResponse>(
@@ -351,6 +357,7 @@ function CreateEventPage() {
                     </Field>
                   )}
                 />
+                <Controller name="image" control={form.control} render={({field,fieldState})=><Field data-invalid={fieldState.invalid}><FieldLabel htmlFor={field.name}>Event image (optional)</FieldLabel><Input ref={field.ref} id={field.name} name={field.name} type="file" accept=".png,image/png" onBlur={field.onBlur} onChange={event=>field.onChange(event.target.files)} aria-invalid={fieldState.invalid}/><FieldDescription>Upload one PNG image up to 10 MB.</FieldDescription>{fieldState.invalid&&<FieldError errors={[fieldState.error]}/>}</Field>}/>
 
                 {createEventMutation.isError && (
                   <Alert variant="destructive">

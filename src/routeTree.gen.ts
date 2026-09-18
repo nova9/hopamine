@@ -14,9 +14,14 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as EventsRouteRouteImport } from './routes/events/route'
 import { Route as AdminEventsRouteRouteImport } from './routes/admin/events/route'
 import { Route as EventsEventSlugRouteRouteImport } from './routes/events/$eventSlug/route'
+import { Route as EventsPastRouteImport } from './routes/events/past'
 import { Route as AdminEventsIndexRouteImport } from './routes/admin/events/index'
 import { Route as AdminEventsNewRouteImport } from './routes/admin/events/new'
 import { Route as EventsEventSlugIndexRouteImport } from './routes/events/$eventSlug/index'
+import { Route as AdminEventsEventSlugEditRouteImport } from './routes/admin/events/$eventSlug/edit'
+import { Route as EventsEventSlugSubmissionsIndexRouteImport } from './routes/events/$eventSlug/submissions/index'
+import { Route as EventsEventSlugSubmissionsSubmissionIdRouteImport } from './routes/events/$eventSlug/submissions/$submissionId'
+import { Route as EventsEventSlugSubmissionsNewRouteImport } from './routes/events/$eventSlug/submissions/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -43,6 +48,11 @@ const EventsEventSlugRouteRoute = EventsEventSlugRouteRouteImport.update({
   path: '/$eventSlug',
   getParentRoute: () => EventsRouteRoute,
 } as any)
+const EventsPastRoute = EventsPastRouteImport.update({
+  id: '/past',
+  path: '/past',
+  getParentRoute: () => EventsRouteRoute,
+} as any)
 const AdminEventsIndexRoute = AdminEventsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -58,6 +68,30 @@ const EventsEventSlugIndexRoute = EventsEventSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => EventsEventSlugRouteRoute,
 } as any)
+const AdminEventsEventSlugEditRoute =
+  AdminEventsEventSlugEditRouteImport.update({
+    id: '/$eventSlug/edit',
+    path: '/$eventSlug/edit',
+    getParentRoute: () => AdminEventsRouteRoute,
+  } as any)
+const EventsEventSlugSubmissionsIndexRoute =
+  EventsEventSlugSubmissionsIndexRouteImport.update({
+    id: '/submissions/',
+    path: '/submissions/',
+    getParentRoute: () => EventsEventSlugRouteRoute,
+  } as any)
+const EventsEventSlugSubmissionsSubmissionIdRoute =
+  EventsEventSlugSubmissionsSubmissionIdRouteImport.update({
+    id: '/submissions/$submissionId',
+    path: '/submissions/$submissionId',
+    getParentRoute: () => EventsEventSlugRouteRoute,
+  } as any)
+const EventsEventSlugSubmissionsNewRoute =
+  EventsEventSlugSubmissionsNewRouteImport.update({
+    id: '/submissions/new',
+    path: '/submissions/new',
+    getParentRoute: () => EventsEventSlugRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,17 +99,27 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRouteRouteWithChildren
   '/admin/events': typeof AdminEventsRouteRouteWithChildren
   '/events/$eventSlug': typeof EventsEventSlugRouteRouteWithChildren
+  '/events/past': typeof EventsPastRoute
   '/admin/events/new': typeof AdminEventsNewRoute
   '/admin/events/': typeof AdminEventsIndexRoute
   '/events/$eventSlug/': typeof EventsEventSlugIndexRoute
+  '/admin/events/$eventSlug/edit': typeof AdminEventsEventSlugEditRoute
+  '/events/$eventSlug/submissions/$submissionId': typeof EventsEventSlugSubmissionsSubmissionIdRoute
+  '/events/$eventSlug/submissions/new': typeof EventsEventSlugSubmissionsNewRoute
+  '/events/$eventSlug/submissions/': typeof EventsEventSlugSubmissionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/events': typeof EventsRouteRouteWithChildren
+  '/events/past': typeof EventsPastRoute
   '/admin/events/new': typeof AdminEventsNewRoute
   '/admin/events': typeof AdminEventsIndexRoute
   '/events/$eventSlug': typeof EventsEventSlugIndexRoute
+  '/admin/events/$eventSlug/edit': typeof AdminEventsEventSlugEditRoute
+  '/events/$eventSlug/submissions/$submissionId': typeof EventsEventSlugSubmissionsSubmissionIdRoute
+  '/events/$eventSlug/submissions/new': typeof EventsEventSlugSubmissionsNewRoute
+  '/events/$eventSlug/submissions': typeof EventsEventSlugSubmissionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -84,9 +128,14 @@ export interface FileRoutesById {
   '/events': typeof EventsRouteRouteWithChildren
   '/admin/events': typeof AdminEventsRouteRouteWithChildren
   '/events/$eventSlug': typeof EventsEventSlugRouteRouteWithChildren
+  '/events/past': typeof EventsPastRoute
   '/admin/events/new': typeof AdminEventsNewRoute
   '/admin/events/': typeof AdminEventsIndexRoute
   '/events/$eventSlug/': typeof EventsEventSlugIndexRoute
+  '/admin/events/$eventSlug/edit': typeof AdminEventsEventSlugEditRoute
+  '/events/$eventSlug/submissions/$submissionId': typeof EventsEventSlugSubmissionsSubmissionIdRoute
+  '/events/$eventSlug/submissions/new': typeof EventsEventSlugSubmissionsNewRoute
+  '/events/$eventSlug/submissions/': typeof EventsEventSlugSubmissionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,17 +145,27 @@ export interface FileRouteTypes {
     | '/events'
     | '/admin/events'
     | '/events/$eventSlug'
+    | '/events/past'
     | '/admin/events/new'
     | '/admin/events/'
     | '/events/$eventSlug/'
+    | '/admin/events/$eventSlug/edit'
+    | '/events/$eventSlug/submissions/$submissionId'
+    | '/events/$eventSlug/submissions/new'
+    | '/events/$eventSlug/submissions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/events'
+    | '/events/past'
     | '/admin/events/new'
     | '/admin/events'
     | '/events/$eventSlug'
+    | '/admin/events/$eventSlug/edit'
+    | '/events/$eventSlug/submissions/$submissionId'
+    | '/events/$eventSlug/submissions/new'
+    | '/events/$eventSlug/submissions'
   id:
     | '__root__'
     | '/'
@@ -114,9 +173,14 @@ export interface FileRouteTypes {
     | '/events'
     | '/admin/events'
     | '/events/$eventSlug'
+    | '/events/past'
     | '/admin/events/new'
     | '/admin/events/'
     | '/events/$eventSlug/'
+    | '/admin/events/$eventSlug/edit'
+    | '/events/$eventSlug/submissions/$submissionId'
+    | '/events/$eventSlug/submissions/new'
+    | '/events/$eventSlug/submissions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -162,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsEventSlugRouteRouteImport
       parentRoute: typeof EventsRouteRoute
     }
+    '/events/past': {
+      id: '/events/past'
+      path: '/past'
+      fullPath: '/events/past'
+      preLoaderRoute: typeof EventsPastRouteImport
+      parentRoute: typeof EventsRouteRoute
+    }
     '/admin/events/': {
       id: '/admin/events/'
       path: '/'
@@ -183,17 +254,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsEventSlugIndexRouteImport
       parentRoute: typeof EventsEventSlugRouteRoute
     }
+    '/admin/events/$eventSlug/edit': {
+      id: '/admin/events/$eventSlug/edit'
+      path: '/$eventSlug/edit'
+      fullPath: '/admin/events/$eventSlug/edit'
+      preLoaderRoute: typeof AdminEventsEventSlugEditRouteImport
+      parentRoute: typeof AdminEventsRouteRoute
+    }
+    '/events/$eventSlug/submissions/': {
+      id: '/events/$eventSlug/submissions/'
+      path: '/submissions'
+      fullPath: '/events/$eventSlug/submissions/'
+      preLoaderRoute: typeof EventsEventSlugSubmissionsIndexRouteImport
+      parentRoute: typeof EventsEventSlugRouteRoute
+    }
+    '/events/$eventSlug/submissions/$submissionId': {
+      id: '/events/$eventSlug/submissions/$submissionId'
+      path: '/submissions/$submissionId'
+      fullPath: '/events/$eventSlug/submissions/$submissionId'
+      preLoaderRoute: typeof EventsEventSlugSubmissionsSubmissionIdRouteImport
+      parentRoute: typeof EventsEventSlugRouteRoute
+    }
+    '/events/$eventSlug/submissions/new': {
+      id: '/events/$eventSlug/submissions/new'
+      path: '/submissions/new'
+      fullPath: '/events/$eventSlug/submissions/new'
+      preLoaderRoute: typeof EventsEventSlugSubmissionsNewRouteImport
+      parentRoute: typeof EventsEventSlugRouteRoute
+    }
   }
 }
 
 interface AdminEventsRouteRouteChildren {
   AdminEventsNewRoute: typeof AdminEventsNewRoute
   AdminEventsIndexRoute: typeof AdminEventsIndexRoute
+  AdminEventsEventSlugEditRoute: typeof AdminEventsEventSlugEditRoute
 }
 
 const AdminEventsRouteRouteChildren: AdminEventsRouteRouteChildren = {
   AdminEventsNewRoute: AdminEventsNewRoute,
   AdminEventsIndexRoute: AdminEventsIndexRoute,
+  AdminEventsEventSlugEditRoute: AdminEventsEventSlugEditRoute,
 }
 
 const AdminEventsRouteRouteWithChildren =
@@ -213,10 +314,17 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 
 interface EventsEventSlugRouteRouteChildren {
   EventsEventSlugIndexRoute: typeof EventsEventSlugIndexRoute
+  EventsEventSlugSubmissionsSubmissionIdRoute: typeof EventsEventSlugSubmissionsSubmissionIdRoute
+  EventsEventSlugSubmissionsNewRoute: typeof EventsEventSlugSubmissionsNewRoute
+  EventsEventSlugSubmissionsIndexRoute: typeof EventsEventSlugSubmissionsIndexRoute
 }
 
 const EventsEventSlugRouteRouteChildren: EventsEventSlugRouteRouteChildren = {
   EventsEventSlugIndexRoute: EventsEventSlugIndexRoute,
+  EventsEventSlugSubmissionsSubmissionIdRoute:
+    EventsEventSlugSubmissionsSubmissionIdRoute,
+  EventsEventSlugSubmissionsNewRoute: EventsEventSlugSubmissionsNewRoute,
+  EventsEventSlugSubmissionsIndexRoute: EventsEventSlugSubmissionsIndexRoute,
 }
 
 const EventsEventSlugRouteRouteWithChildren =
@@ -224,10 +332,12 @@ const EventsEventSlugRouteRouteWithChildren =
 
 interface EventsRouteRouteChildren {
   EventsEventSlugRouteRoute: typeof EventsEventSlugRouteRouteWithChildren
+  EventsPastRoute: typeof EventsPastRoute
 }
 
 const EventsRouteRouteChildren: EventsRouteRouteChildren = {
   EventsEventSlugRouteRoute: EventsEventSlugRouteRouteWithChildren,
+  EventsPastRoute: EventsPastRoute,
 }
 
 const EventsRouteRouteWithChildren = EventsRouteRoute._addFileChildren(

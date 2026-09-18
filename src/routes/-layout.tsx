@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  Briefcase,
   CalendarBlank,
   ChatCircleDots,
   Clock,
@@ -125,6 +124,9 @@ export function EventArtwork({ event }: { event: EventSummary }) {
   const Icon = details.icon;
 
   return (
+    event.imageUrl ? (
+      <img src={event.imageUrl} alt="" className={cn("aspect-video w-full border-b object-cover", event.status === "past" && "opacity-70 grayscale")} />
+    ) : (
     <div
       className={cn(
         "flex aspect-video flex-col items-center justify-center gap-3 border-b bg-muted/50 text-muted-foreground",
@@ -136,6 +138,7 @@ export function EventArtwork({ event }: { event: EventSummary }) {
       <Icon className="size-9" weight="duotone" aria-hidden="true" />
       <Badge variant="outline">{details.label}</Badge>
     </div>
+    )
   );
 }
 
@@ -239,9 +242,3 @@ export function Stat({
     </Card>
   );
 }
-
-export const communityStats = [
-  { icon: CalendarBlank, value: "3", label: "upcoming events" },
-  { icon: FileText, value: "24", label: "shared resources" },
-  { icon: Briefcase, value: "8", label: "past sessions" },
-];

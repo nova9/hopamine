@@ -12,6 +12,7 @@ export type EventSummary = {
   description: string;
   status: EventStatus;
   category: EventCategory;
+  imageUrl: string | null;
 };
 
 export type EventPresentation = {
@@ -52,9 +53,11 @@ export type ModeratorSession = {
 };
 
 export type SubmissionFile = {
+  id: string;
   name: string;
-  type: "DOCX" | "PDF" | "PNG" | "PPTX";
-  size: string;
+  mimeType: string;
+  size: number;
+  downloadUrl: string;
 };
 
 export type Submission = {
@@ -63,6 +66,14 @@ export type Submission = {
   username: string;
   title: string;
   description: string;
+  submittedAt: string;
   createdAt: string;
   files: SubmissionFile[];
+};
+
+export type SubmissionsResponse = { submissions: Submission[] };
+export type SubmissionResponse = { submission: Submission; event: EventSummary };
+export type PaginationData = {
+  page: number; pageSize: number; total: number; totalPages: number;
+  hasNextPage: boolean; hasPreviousPage: boolean;
 };
