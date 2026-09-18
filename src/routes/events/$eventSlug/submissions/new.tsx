@@ -153,7 +153,7 @@ function NewSubmissionPage() {
             </FieldGroup>
           </CardContent>
           <CardFooter className="justify-end">
-            <Button disabled={mutation.isPending}>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Publishing…" : "Publish submission"}
             </Button>
           </CardFooter>
