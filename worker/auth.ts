@@ -5,6 +5,8 @@ export type AppEnvironment = {
   Bindings: Env & {
     ACCESS_TEAM_DOMAIN: string;
     ACCESS_AUD: string;
+    SUBMISSION_RATE_LIMITER: RateLimit;
+    GLOBAL_UPLOAD_RATE_LIMITER: RateLimit;
   };
   Variables: { moderatorEmail: string };
 };

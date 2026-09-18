@@ -5,6 +5,7 @@ import { registerAuthRoutes, type AppEnvironment } from "./auth";
 import { countRowSchema, eventRowSchema, listEventsSchema } from "./schemas";
 import { createSubmissionSchema } from "./schemas";
 import { sanitizeFilename } from "./utils";
+import { hasStorageCapacity, reserveR2Writes } from "./usage";
 
 const SUBMISSION_EXTENSIONS = [".doc", ".docx", ".pdf", ".avif"];
 const SUBMISSION_TYPES = new Set([
@@ -13,9 +14,9 @@ const SUBMISSION_TYPES = new Set([
   "application/pdf",
   "image/avif",
 ]);
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
 const MAX_FILES = 5;
-const submissionAttempts = new Map<string, number[]>();
 
 const app = new Hono<AppEnvironment>();
 
@@ -243,13 +244,13 @@ app.get("/api/events/:eventSlug/submissions", async (c) => {
 
 app.post("/api/events/:eventSlug/submissions", async (c) => {
   const clientKey = c.req.header("cf-connecting-ip") ?? "anonymous";
-  const cutoff = Date.now() - 60 * 60 * 1000;
-  const recent = (submissionAttempts.get(clientKey) ?? []).filter(
-    (time) => time > cutoff,
-  );
-  if (recent.length >= 5)
+  const [clientLimit, globalLimit] = await Promise.all([
+    c.env.SUBMISSION_RATE_LIMITER.limit({ key: clientKey }),
+    c.env.GLOBAL_UPLOAD_RATE_LIMITER.limit({ key: "submissions" }),
+  ]);
+  if (!clientLimit.success || !globalLimit.success)
     return c.json(
-      { error: "Too many submissions. Please try again later." },
+      { error: "Too many submission attempts. Please try again shortly." },
       429,
     );
   const event = await findEvent(c, c.req.param("eventSlug"));
@@ -285,8 +286,21 @@ app.post("/api/events/:eventSlug/submissions", async (c) => {
         400,
       );
     if (file.size > MAX_FILE_SIZE)
-      return c.json({ error: `${file.name} exceeds the 25 MB limit.` }, 400);
+      return c.json({ error: `${file.name} exceeds the 10 MB limit.` }, 400);
   }
+  const uploadSize = files.reduce((total, file) => total + file.size, 0);
+  if (uploadSize > MAX_UPLOAD_SIZE)
+    return c.json({ error: "The combined upload exceeds the 25 MB limit." }, 400);
+  if (!(await hasStorageCapacity(c, uploadSize)))
+    return c.json(
+      { error: "Uploads are temporarily unavailable because storage is full." },
+      503,
+    );
+  if (!(await reserveR2Writes(c, files.length)))
+    return c.json(
+      { error: "Uploads are temporarily unavailable for this month." },
+      503,
+    );
   const id = crypto.randomUUID();
   const uploaded: string[] = [];
   try {
@@ -328,7 +342,6 @@ app.post("/api/events/:eventSlug/submissions", async (c) => {
           ),
       ),
     ]);
-    submissionAttempts.set(clientKey, [...recent, Date.now()]);
     return c.json(
       {
         submission: {
@@ -403,6 +416,9 @@ app.get("/api/events/:eventSlug/submissions/:submissionId", async (c) => {
 });
 
 app.get("/api/submission-files/:fileId", async (c) => {
+  const cache = caches.default;
+  const cached = await cache.match(c.req.raw);
+  if (cached) return cached;
   const file = await c.env.hopamine_db
     .prepare(
       "SELECT filename,mime_type,storage_key FROM submission_files sf JOIN submissions s ON s.id=sf.submission_id WHERE sf.id=?1 AND s.deleted_at IS NULL",
@@ -413,14 +429,17 @@ app.get("/api/submission-files/:fileId", async (c) => {
   const object = await c.env.hopamine_files.get(file.storage_key);
   if (!object) return c.json({ error: "File not found" }, 404);
   const filename = file.filename.replace(/["\\]/g, "-");
-  return new Response(object.body, {
+  const response = new Response(object.body, {
     headers: {
       "Content-Type": file.mime_type,
       "Content-Disposition": `attachment; filename="${filename}"`,
       "Content-Length": String(object.size),
       "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "public, max-age=86400, s-maxage=2592000",
     },
   });
+  c.executionCtx.waitUntil(cache.put(c.req.raw, response.clone()));
+  return response;
 });
 
 app.get("/api/events/:eventSlug/presentation", async (c) => {
@@ -456,6 +475,8 @@ app.get("/api/events/:eventSlug/presentation", async (c) => {
   );
   headers.set("Content-Disposition", `attachment; filename="${filename}"`);
   headers.set("Content-Length", object.size.toString());
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Cache-Control", "public, max-age=86400, s-maxage=2592000");
 
   return new Response(object.body, { headers });
 });

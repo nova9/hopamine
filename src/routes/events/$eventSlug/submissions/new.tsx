@@ -147,7 +147,7 @@ function NewSubmissionPage() {
                 />
                 <FieldDescription>
                   Upload 1–5 DOC, DOCX, PDF, PNG, or JPEG files. Images are
-                  converted to AVIF before upload. Maximum 25 MB each.
+                  converted to AVIF before upload. Maximum 10 MB each and 25 MB total.
                 </FieldDescription>
               </Field>
             </FieldGroup>
