@@ -1,9 +1,14 @@
 import type { Context, Hono } from "hono";
 
-import type { AppEnvironment } from "./auth";
-import { createEventSchema, updateEventSchema } from "./schemas";
-import { sanitizeFilename, slugify } from "./utils";
-import { hasStorageCapacity, reserveR2Writes } from "./usage";
+import { createEventSchema, updateEventSchema } from "../schemas";
+import type {
+  AdminEventRow,
+  AppEnvironment,
+  RawEventInput,
+  SubmissionStorageKeyRow,
+} from "../types";
+import { hasStorageCapacity, reserveR2Writes } from "../usage";
+import { sanitizeFilename, slugify } from "../utils";
 
 const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
 const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
@@ -74,7 +79,7 @@ function getPresentationError(file: File) {
 export function registerAdminRoutes(app: Hono<AppEnvironment>) {
   app.post("/api/admin/events", async (c) => {
     const contentType = c.req.header("content-type") ?? "";
-    let rawInput: Record<string, unknown>;
+    let rawInput: RawEventInput;
     let presentation: File | null = null;
     let image: File | null = null;
 
@@ -84,7 +89,7 @@ export function registerAdminRoutes(app: Hono<AppEnvironment>) {
       presentation = parsed.presentation;
       image = parsed.image;
     } else {
-      rawInput = await c.req.json<Record<string, unknown>>();
+      rawInput = await c.req.json<RawEventInput>();
     }
 
     const result = createEventSchema.safeParse(rawInput);
@@ -221,7 +226,7 @@ export function registerAdminRoutes(app: Hono<AppEnvironment>) {
     const current = await c.env.hopamine_db
       .prepare("SELECT * FROM events WHERE slug = ?1")
       .bind(c.req.param("eventSlug"))
-      .first<Record<string, unknown>>();
+      .first<AdminEventRow>();
     if (!current) return c.json({ error: "Event not found" }, 404);
     if (Date.parse(String(current.starts_at)) <= Date.now())
       return c.json({ error: "Past events cannot be edited" }, 409);
@@ -321,7 +326,7 @@ export function registerAdminRoutes(app: Hono<AppEnvironment>) {
         "SELECT storage_key FROM submission_files WHERE submission_id=?1",
       )
       .bind(id)
-      .all<{ storage_key: string }>();
+      .all<SubmissionStorageKeyRow>();
     const result = await c.env.hopamine_db
       .prepare(
         "UPDATE submissions SET deleted_at=CURRENT_TIMESTAMP, deleted_by=?1 WHERE id=?2 AND deleted_at IS NULL",

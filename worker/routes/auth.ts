@@ -1,17 +1,9 @@
 import type { Hono } from "hono";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-export type AppEnvironment = {
-  Bindings: Env & {
-    ACCESS_TEAM_DOMAIN: string;
-    ACCESS_AUD: string;
-    SUBMISSION_RATE_LIMITER: RateLimit;
-    GLOBAL_UPLOAD_RATE_LIMITER: RateLimit;
-  };
-  Variables: { moderatorEmail: string };
-};
+import type { AccessJwks, AppEnvironment } from "../types";
 
-let accessJwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+let accessJwks: AccessJwks | undefined;
 
 async function getModeratorEmail(
   executionCtx: unknown,

@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 
-import type { AppEnvironment } from "./auth";
+import type { AppEnvironment } from "./types";
 
 // Keep enough headroom for concurrent uploads and R2's GB-month accounting.
 const MAX_STORED_BYTES = 7 * 1024 * 1024 * 1024;
