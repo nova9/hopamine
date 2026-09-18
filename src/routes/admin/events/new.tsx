@@ -55,6 +55,7 @@ export const Route = createFileRoute("/admin/events/new")({
 const MAX_PRESENTATION_SIZE = 25 * 1024 * 1024;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg"];
 
 const createEventFormSchema = z.object({
   name: z.string().trim().min(1, "Enter an event name.").max(200),
@@ -103,10 +104,14 @@ const createEventFormSchema = z.object({
 
       if (!image) return;
 
-      if (!image.name.toLowerCase().endsWith(".png")) {
+      const hasAllowedExtension = IMAGE_EXTENSIONS.some((extension) =>
+        image.name.toLowerCase().endsWith(extension),
+      );
+
+      if (!hasAllowedExtension) {
         context.addIssue({
           code: "custom",
-          message: "The event image must be a PNG file.",
+          message: "The event image must be a PNG or JPEG file.",
         });
       }
 
@@ -392,13 +397,13 @@ function CreateEventPage() {
                         id={field.name}
                         name={field.name}
                         type="file"
-                        accept=".png,image/png"
+                        accept=".png,.jpg,.jpeg,image/png,image/jpeg"
                         onBlur={field.onBlur}
                         onChange={(event) => field.onChange(event.target.files)}
                         aria-invalid={fieldState.invalid}
                       />
                       <FieldDescription>
-                        Upload one PNG image up to 10 MB.
+                        Upload one PNG or JPEG image up to 10 MB.
                       </FieldDescription>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />

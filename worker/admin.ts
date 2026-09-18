@@ -12,9 +12,19 @@ const PRESENTATION_TYPES = new Set([
   "application/pdf",
 ]);
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg"];
+const IMAGE_TYPES = new Set(["image/png", "image/jpeg"]);
 
 function getImageError(file: File) {
-  if (!file.name.toLowerCase().endsWith(".png") || (file.type && file.type !== "image/png")) return "The event image must be a PNG file.";
+  const lowercaseName = file.name.toLowerCase();
+  const hasAllowedExtension = IMAGE_EXTENSIONS.some((extension) =>
+    lowercaseName.endsWith(extension),
+  );
+
+  if (!hasAllowedExtension || (file.type && !IMAGE_TYPES.has(file.type))) {
+    return "The event image must be a PNG or JPEG file.";
+  }
+
   if (file.size > MAX_IMAGE_SIZE) return "The event image must be 10 MB or smaller.";
   return null;
 }
@@ -93,7 +103,7 @@ export function registerAdminRoutes(app: Hono<AppEnvironment>) {
         },
       });
     }
-    if (image && imageKey) await c.env.hopamine_files.put(imageKey, image, { httpMetadata: { contentType: image.type || "image/png" } });
+    if (image && imageKey) await c.env.hopamine_files.put(imageKey, image, { httpMetadata: { contentType: image.type || "application/octet-stream" } });
 
     try {
       await c.env.hopamine_db

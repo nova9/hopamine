@@ -3,6 +3,7 @@
 - UI must follow shadcn "lyra" design system.
 - always refer to requirements in plan.md and req.md
 - Do not manually create shadcn components. Use the shadcn cli to generate components. Do not edit the generated components manually. Always use the shadcn cli to update the components.
+- keep things consistent.
 
 
 # Clean Code

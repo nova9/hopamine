@@ -6,12 +6,13 @@ import { countRowSchema, eventRowSchema, listEventsSchema } from "./schemas";
 import { createSubmissionSchema } from "./schemas";
 import { sanitizeFilename } from "./utils";
 
-const SUBMISSION_EXTENSIONS = [".doc", ".docx", ".pdf", ".png"];
+const SUBMISSION_EXTENSIONS = [".doc", ".docx", ".pdf", ".png", ".jpg", ".jpeg"];
 const SUBMISSION_TYPES = new Set([
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/pdf",
   "image/png",
+  "image/jpeg",
 ]);
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const MAX_FILES = 5;
@@ -281,7 +282,7 @@ app.post("/api/events/:eventSlug/submissions", async (c) => {
       (file.type && !SUBMISSION_TYPES.has(file.type))
     )
       return c.json(
-        { error: `${file.name} is not a DOC, DOCX, PDF, or PNG file.` },
+        { error: `${file.name} is not a DOC, DOCX, PDF, PNG, or JPEG file.` },
         400,
       );
     if (file.size > MAX_FILE_SIZE)

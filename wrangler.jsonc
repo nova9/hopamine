@@ -1,37 +1,35 @@
 {
-	"$schema": "./node_modules/wrangler/config-schema.json",
-	"name": "hopamine",
-	"main": "./worker/index.ts",
-	"compatibility_date": "2026-09-17",
-	"vars": {
-		"ACCESS_TEAM_DOMAIN": "thathsara.cloudflareaccess.com",
-		"ACCESS_AUD": "a1fe719212bdc0ba487a73375255a658c6f066e1a1cc30d92ba53591857270f2"
-	},
-	"access": {
-		"dev": {
-			"aud": "hopamine-local",
-			"identity": {
-				"email": "moderator@hopamine.local"
-			}
-		}
-	},
-	"assets": {
-		"not_found_handling": "single-page-application",
-		"run_worker_first": [
-			"/api/*"
-		]
-	},
-	"d1_databases": [
-		{
-			"binding": "hopamine_db",
-			"database_name": "hopamine-db",
-			"database_id": "c2b083fa-f63a-4648-977e-ad4be47122b6"
-		}
-	],
-	"r2_buckets": [
-		{
-			"binding": "hopamine_files",
-			"bucket_name": "hopamine-files"
-		}
-	]
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hopamine",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-09-17",
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "thathsara.cloudflareaccess.com",
+    "ACCESS_AUD": "a1fe719212bdc0ba487a73375255a658c6f066e1a1cc30d92ba53591857270f2",
+  },
+  "access": {
+    "dev": {
+      "aud": "hopamine-local",
+      "identity": {
+        "email": "moderator@hopamine.local",
+      },
+    },
+  },
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "d1_databases": [
+    {
+      "binding": "hopamine_db",
+      "database_name": "hopamine-db",
+      "database_id": "c2b083fa-f63a-4648-977e-ad4be47122b6",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "hopamine_files",
+      "bucket_name": "hopamine-files",
+    },
+  ],
 }
