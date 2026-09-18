@@ -12,8 +12,8 @@ const PRESENTATION_TYPES = new Set([
   "application/pdf",
 ]);
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg"];
-const IMAGE_TYPES = new Set(["image/png", "image/jpeg"]);
+const IMAGE_EXTENSIONS = [".avif"];
+const IMAGE_TYPES = new Set(["image/avif"]);
 
 function getImageError(file: File) {
   const lowercaseName = file.name.toLowerCase();
@@ -22,7 +22,7 @@ function getImageError(file: File) {
   );
 
   if (!hasAllowedExtension || (file.type && !IMAGE_TYPES.has(file.type))) {
-    return "The event image must be a PNG or JPEG file.";
+    return "The event image must be converted to AVIF before upload.";
   }
 
   if (file.size > MAX_IMAGE_SIZE) return "The event image must be 10 MB or smaller.";

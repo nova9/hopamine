@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { convertImageToAvif } from "@/lib/image";
 import type {
   ApiErrorResponse,
   CreatedEvent,
@@ -144,7 +145,7 @@ async function createEvent(values: CreateEventFormValues): Promise<CreatedEvent>
   }
 
   if (image) {
-    formData.set("image", image);
+    formData.set("image", await convertImageToAvif(image));
   }
 
   try {
@@ -403,7 +404,8 @@ function CreateEventPage() {
                         aria-invalid={fieldState.invalid}
                       />
                       <FieldDescription>
-                        Upload one PNG or JPEG image up to 10 MB.
+                        Upload one PNG or JPEG image up to 10 MB. It will be
+                        converted to AVIF before upload.
                       </FieldDescription>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />

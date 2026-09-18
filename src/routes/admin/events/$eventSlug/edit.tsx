@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { convertFormDataImages } from "@/lib/image";
 
 export const Route = createFileRoute("/admin/events/$eventSlug/edit")({
   component: EditEventPage,
@@ -39,6 +40,7 @@ function EditEventPage() {
   const mutation = useMutation({
     mutationFn: async (form: HTMLFormElement) => {
       const data = new FormData(form);
+      await convertFormDataImages(data, "image");
       data.set(
         "startsAt",
         new Date(String(data.get("startsAt"))).toISOString(),
@@ -158,7 +160,8 @@ function EditEventPage() {
                   accept=".png,.jpg,.jpeg,image/png,image/jpeg"
                 />
                 <FieldDescription>
-                  Optional PNG or JPEG, up to 10 MB.
+                  Optional PNG or JPEG, up to 10 MB. It will be converted to
+                  AVIF before upload.
                 </FieldDescription>
               </Field>
               <Field>
