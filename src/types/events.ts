@@ -71,9 +71,20 @@ export type Submission = {
   files: SubmissionFile[];
 };
 
-export type SubmissionsResponse = { submissions: Submission[] };
-export type SubmissionResponse = { submission: Submission; event: EventSummary };
+export type SubmissionsResponse = {
+  submissions: Submission[];
+};
+
+export type SubmissionResponse = {
+  submission: Submission;
+  event: EventSummary;
+};
+
 export type PaginationData = {
-  page: number; pageSize: number; total: number; totalPages: number;
-  hasNextPage: boolean; hasPreviousPage: boolean;
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 };

@@ -123,10 +123,20 @@ export function EventArtwork({ event }: { event: EventSummary }) {
   const details = categoryDetails[event.category];
   const Icon = details.icon;
 
+  if (event.imageUrl) {
+    return (
+      <img
+        src={event.imageUrl}
+        alt=""
+        className={cn(
+          "aspect-video w-full border-b object-cover",
+          event.status === "past" && "opacity-70 grayscale",
+        )}
+      />
+    );
+  }
+
   return (
-    event.imageUrl ? (
-      <img src={event.imageUrl} alt="" className={cn("aspect-video w-full border-b object-cover", event.status === "past" && "opacity-70 grayscale")} />
-    ) : (
     <div
       className={cn(
         "flex aspect-video flex-col items-center justify-center gap-3 border-b bg-muted/50 text-muted-foreground",
@@ -138,7 +148,6 @@ export function EventArtwork({ event }: { event: EventSummary }) {
       <Icon className="size-9" weight="duotone" aria-hidden="true" />
       <Badge variant="outline">{details.label}</Badge>
     </div>
-    )
   );
 }
 
