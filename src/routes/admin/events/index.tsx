@@ -10,6 +10,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
   CardAction,
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/admin/events/")({
 });
 
 function AdminEventsPage() {
-  const { moderator } = Route.useRouteContext();
+  const { moderator } = useAuth();
   const eventsQuery = useQuery({
     queryKey: ["events"],
     queryFn: getEvents,
@@ -46,7 +47,7 @@ function AdminEventsPage() {
           </Badge>
           <h1 className="font-heading text-3xl font-medium tracking-tight">Event management</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Signed in as {moderator.email}
+            Signed in as {moderator?.email}
           </p>
         </div>
         <Link to="/admin/events/new" className={buttonVariants()}>

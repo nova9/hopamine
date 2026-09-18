@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.3.0",
     "hono": "^4.13.8",
+    "jose": "^6.2.12",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.88.0",

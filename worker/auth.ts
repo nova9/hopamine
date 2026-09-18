@@ -1,19 +1,55 @@
 import type { Hono } from "hono";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 
 export type AppEnvironment = {
-  Bindings: Env;
+  Bindings: Env & {
+    ACCESS_TEAM_DOMAIN: string;
+    ACCESS_AUD: string;
+  };
   Variables: { moderatorEmail: string };
 };
 
-async function getAccessIdentity(executionCtx: unknown) {
-  return (executionCtx as ExecutionContext).access?.getIdentity();
+let accessJwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+
+async function getModeratorEmail(
+  executionCtx: unknown,
+  request: Request,
+  env: AppEnvironment["Bindings"],
+) {
+  const localIdentity = await (
+    executionCtx as ExecutionContext
+  ).access?.getIdentity();
+  if (localIdentity?.email) return localIdentity.email;
+
+  const token = request.headers.get("cf-access-jwt-assertion");
+  if (!token || !env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return null;
+
+  const teamOrigin = `https://${env.ACCESS_TEAM_DOMAIN}`;
+  accessJwks ??= createRemoteJWKSet(
+    new URL(`${teamOrigin}/cdn-cgi/access/certs`),
+  );
+
+  try {
+    const { payload } = await jwtVerify(token, accessJwks, {
+      issuer: teamOrigin,
+      audience: env.ACCESS_AUD,
+    });
+
+    return typeof payload.email === "string" ? payload.email : null;
+  } catch {
+    return null;
+  }
 }
 
 export function registerAuthRoutes(app: Hono<AppEnvironment>) {
   app.use("/api/admin/*", async (c, next) => {
-    const identity = await getAccessIdentity(c.executionCtx);
+    const moderatorEmail = await getModeratorEmail(
+      c.executionCtx,
+      c.req.raw,
+      c.env,
+    );
 
-    if (!identity?.email) {
+    if (!moderatorEmail) {
       return c.json(
         {
           error:
@@ -23,7 +59,7 @@ export function registerAuthRoutes(app: Hono<AppEnvironment>) {
       );
     }
 
-    c.set("moderatorEmail", identity.email);
+    c.set("moderatorEmail", moderatorEmail);
     await next();
   });
 

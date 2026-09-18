@@ -13,6 +13,7 @@ import { Link, Outlet } from "@tanstack/react-router";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
   CardAction,
@@ -45,6 +46,8 @@ export function formatEventDate(value: string) {
 }
 
 export function Layout() {
+  const { isModerator } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
@@ -63,12 +66,21 @@ export function Layout() {
           </Link>
 
           <nav aria-label="Primary navigation" className="flex items-center gap-1">
-            <Link
-              to="/admin/events"
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
-            >
-              Moderator sign in
-            </Link>
+            {isModerator ? (
+              <Link
+                to="/admin/events"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                Admin dashboard
+              </Link>
+            ) : (
+              <a
+                href="/admin/events"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                Moderator sign in
+              </a>
+            )}
             <a
               className={cn(
                 buttonVariants({ variant: "ghost", size: "sm" }),
