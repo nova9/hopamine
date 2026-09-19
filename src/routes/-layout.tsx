@@ -41,6 +41,10 @@ const categoryDetails: Record<
   collaboration: { label: "Collaboration", icon: UsersThree },
 };
 
+export function getEventCategoryLabel(category: EventCategory) {
+  return categoryDetails[category].label;
+}
+
 export function formatEventDate(value: string) {
   return dateFormatter.format(new Date(value));
 }

@@ -32,7 +32,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { getEvent } from "@/lib/events";
 import { useAuth } from "@/contexts/auth-context";
-import { EventArtwork, formatEventDate } from "@/routes/-layout";
+import {
+  EventArtwork,
+  formatEventDate,
+  getEventCategoryLabel,
+} from "@/routes/-layout";
 
 export const Route = createFileRoute("/events/$eventSlug/")({
   component: EventDetailPage,
@@ -100,6 +104,9 @@ function EventDetailPage() {
                   {event.status === "upcoming" ? "Upcoming" : "Past event"}
                 </Badge>
                 <Badge variant="outline">Hosted by {event.host}</Badge>
+                <Badge variant="outline">
+                  {getEventCategoryLabel(event.category)}
+                </Badge>
               </div>
               <CardTitle className="font-heading text-2xl leading-tight tracking-tight sm:text-3xl lg:text-4xl">
                 <h1>{event.name}</h1>
