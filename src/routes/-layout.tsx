@@ -37,7 +37,7 @@ const categoryDetails: Record<
   { label: string; icon: typeof Lightbulb }
 > = {
   workshop: { label: "Workshop", icon: Lightbulb },
-  trade: { label: "Information trade", icon: ChatCircleDots },
+  trade: { label: "Meeting", icon: ChatCircleDots },
   collaboration: { label: "Collaboration", icon: UsersThree },
 };
 

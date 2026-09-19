@@ -119,7 +119,7 @@ function EditEventPage() {
                   className="h-9 w-full border bg-transparent px-3 text-sm"
                 >
                   <option value="workshop">Workshop</option>
-                  <option value="trade">Information trade</option>
+                  <option value="trade">Meeting</option>
                   <option value="collaboration">Collaboration</option>
                 </select>
               </Field>

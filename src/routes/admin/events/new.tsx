@@ -289,7 +289,7 @@ function CreateEventPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="workshop">Workshop</SelectItem>
-                            <SelectItem value="trade">Information trade</SelectItem>
+                            <SelectItem value="trade">Meeting</SelectItem>
                             <SelectItem value="collaboration">Collaboration</SelectItem>
                           </SelectContent>
                         </Select>
