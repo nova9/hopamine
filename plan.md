@@ -174,6 +174,7 @@ Extend D1 with:
   - Created and updated timestamps
 - `submissions`
   - Event ID, username, title, description, and submitted date
+  - Category: Educational, Network Building, or Collaborative
   - Created timestamp
 - `submission_files`
   - Submission ID, filename, MIME type, size, and storage key
@@ -260,6 +261,7 @@ The submission form will include:
 
 - Username
 - Post title
+- Category: Educational, Network Building, or Collaborative
 - Date, defaulted to the current date
 - Short description
 - Multi-file upload

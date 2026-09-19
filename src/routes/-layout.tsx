@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { getSubmissionCategoryLabel } from "@/lib/submission-categories";
 import type { EventCategory, EventSummary, Submission } from "@/types/events";
 
 const dateFormatter = new Intl.DateTimeFormat("en", {
@@ -235,6 +236,11 @@ export function SubmissionCard({
             />
           </CardAction>
         </CardHeader>
+        <CardContent>
+          <Badge variant="outline">
+            {getSubmissionCategoryLabel(submission.category)}
+          </Badge>
+        </CardContent>
       </Card>
     </a>
   );

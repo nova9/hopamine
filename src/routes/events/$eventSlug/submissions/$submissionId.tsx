@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { getSubmission } from "@/lib/events";
 import { useAuth } from "@/contexts/auth-context";
 import { formatEventDate } from "@/routes/-layout";
+import { getSubmissionCategoryLabel } from "@/lib/submission-categories";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -81,6 +83,9 @@ function SubmissionDetail() {
           <p className="mt-2 text-muted-foreground">
             By {submission.username} · {formatEventDate(submission.submittedAt)}
           </p>
+          <Badge variant="outline" className="mt-3">
+            {getSubmissionCategoryLabel(submission.category)}
+          </Badge>
         </div>
         {auth.isModerator && (
           <AlertDialog>

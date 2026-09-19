@@ -1,5 +1,6 @@
 import type { createRemoteJWKSet } from "jose";
 
+import type { SubmissionCategory } from "../src/lib/submission-categories";
 import type { eventRowSchema } from "./schemas";
 
 export type AppEnvironment = {
@@ -42,6 +43,7 @@ export type SubmissionRow = {
   event_id: string;
   username: string;
   title: string;
+  category: SubmissionCategory;
   description: string;
   submitted_at: string;
   created_at: string;

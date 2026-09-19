@@ -20,8 +20,16 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DOCUMENT_ACCEPT, DOCUMENT_TYPE_LABEL } from "@/lib/upload-policy";
+import { SUBMISSION_CATEGORIES } from "@/lib/submission-categories";
 
 export const Route = createFileRoute("/events/$eventSlug/submissions/new")({
   component: NewSubmissionPage,
@@ -114,6 +122,21 @@ function NewSubmissionPage() {
                 <Input id="title" name="title" required maxLength={200} />
               </Field>
               <Field>
+                <FieldLabel htmlFor="category">Category</FieldLabel>
+                <Select name="category" required>
+                  <SelectTrigger id="category" className="w-full">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUBMISSION_CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
                 <FieldLabel htmlFor="submittedAt">Submission date</FieldLabel>
                 <Input
                   id="submittedAt"
@@ -129,10 +152,13 @@ function NewSubmissionPage() {
                   id="description"
                   name="description"
                   required
+                  minLength={50}
                   maxLength={5000}
                   className="min-h-32"
                 />
-                <FieldDescription>Include any web links here.</FieldDescription>
+                <FieldDescription>
+                  Enter at least 50 characters. Include any web links here.
+                </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="files">Files</FieldLabel>

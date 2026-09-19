@@ -130,28 +130,6 @@
     }
 }
 
-/* Hopamine brand overrides */
-:root {
-  --background: oklch(0.995 0.003 250);
-  --foreground: oklch(0.22 0.025 255);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.025 255);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.025 255);
-  --primary: oklch(0.31 0.11 255);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.025 250);
-  --secondary-foreground: oklch(0.3 0.09 255);
-  --muted: oklch(0.96 0.014 250);
-  --muted-foreground: oklch(0.48 0.035 255);
-  --accent: oklch(0.9 0.16 96);
-  --accent-foreground: oklch(0.25 0.06 255);
-  --border: oklch(0.9 0.025 250);
-  --input: oklch(0.9 0.025 250);
-  --ring: oklch(0.52 0.17 255);
-  --radius: 0.75rem;
-}
-
 body {
   min-width: 320px;
   margin: 0;

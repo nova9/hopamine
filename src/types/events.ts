@@ -1,3 +1,5 @@
+import type { SubmissionCategory } from "@/lib/submission-categories";
+
 export type EventStatus = "upcoming" | "past";
 
 export type EventCategory = "workshop" | "trade" | "collaboration";
@@ -65,6 +67,7 @@ export type Submission = {
   eventId: string;
   username: string;
   title: string;
+  category: SubmissionCategory;
   description: string;
   submittedAt: string;
   createdAt: string;

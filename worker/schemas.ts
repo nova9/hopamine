@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { SUBMISSION_CATEGORIES } from "../src/lib/submission-categories";
+
 export const createEventSchema = z.object({
   name: z.string().trim().min(1).max(200),
   host: z.string().trim().min(1).max(100),
@@ -38,7 +40,8 @@ export const updateEventSchema = createEventSchema;
 export const createSubmissionSchema = z.object({
   username: z.string().trim().min(1).max(80),
   title: z.string().trim().min(1).max(200),
-  description: z.string().trim().min(1).max(5_000),
+  category: z.enum(SUBMISSION_CATEGORIES.map(({ value }) => value)),
+  description: z.string().trim().min(50).max(5_000),
   submittedAt: z.string().refine((value) => !Number.isNaN(Date.parse(value)), "Invalid submission date"),
 });
 

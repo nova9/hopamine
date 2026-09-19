@@ -35,6 +35,7 @@ function toSubmissionResponse(row: SubmissionRow, files: SubmissionFileRow[]) {
     eventId: row.event_id,
     username: row.username,
     title: row.title,
+    category: row.category,
     description: row.description,
     submittedAt: row.submitted_at,
     createdAt: row.created_at,
@@ -67,7 +68,7 @@ export function registerSubmissionRoutes(app: Hono<AppEnvironment>) {
     if (!event) return c.json({ error: "Event not found" }, 404);
     const rows = await c.env.hopamine_db
       .prepare(
-        "SELECT id, event_id, username, title, description, submitted_at, created_at FROM submissions WHERE event_id=?1 AND deleted_at IS NULL ORDER BY created_at DESC",
+        "SELECT id, event_id, username, title, category, description, submitted_at, created_at FROM submissions WHERE event_id=?1 AND deleted_at IS NULL ORDER BY created_at DESC",
       )
       .bind(event.id)
       .all<SubmissionRow>();
@@ -99,6 +100,7 @@ export function registerSubmissionRoutes(app: Hono<AppEnvironment>) {
     const result = createSubmissionSchema.safeParse({
       username: form.get("username"),
       title: form.get("title"),
+      category: form.get("category"),
       description: form.get("description"),
       submittedAt: form.get("submittedAt"),
     });
@@ -158,13 +160,14 @@ export function registerSubmissionRoutes(app: Hono<AppEnvironment>) {
       await c.env.hopamine_db.batch([
         c.env.hopamine_db
           .prepare(
-            "INSERT INTO submissions (id,event_id,username,title,description,submitted_at) VALUES (?,?,?,?,?,?)",
+            "INSERT INTO submissions (id,event_id,username,title,category,description,submitted_at) VALUES (?,?,?,?,?,?,?)",
           )
           .bind(
             id,
             event.id,
             result.data.username,
             result.data.title,
+            result.data.category,
             result.data.description,
             submittedAt,
           ),
@@ -192,6 +195,7 @@ export function registerSubmissionRoutes(app: Hono<AppEnvironment>) {
               event_id: event.id,
               username: result.data.username,
               title: result.data.title,
+              category: result.data.category,
               description: result.data.description,
               submitted_at: submittedAt,
               created_at: new Date().toISOString(),
@@ -217,7 +221,7 @@ export function registerSubmissionRoutes(app: Hono<AppEnvironment>) {
     if (!event) return c.json({ error: "Event not found" }, 404);
     const row = await c.env.hopamine_db
       .prepare(
-        "SELECT id,event_id,username,title,description,submitted_at,created_at FROM submissions WHERE id=?1 AND event_id=?2 AND deleted_at IS NULL",
+        "SELECT id,event_id,username,title,category,description,submitted_at,created_at FROM submissions WHERE id=?1 AND event_id=?2 AND deleted_at IS NULL",
       )
       .bind(c.req.param("submissionId"), event.id)
       .first<SubmissionRow>();

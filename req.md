@@ -46,7 +46,7 @@ Event name: Example user’s submission | Date of submission
 Desc input by user
 Files uploaded by user
 
-Template details: [Those adding a submission can input: Username, title of post, date, short desc, and files. Note above where to submit files that says “files must be doc, docx, ppt, pptx, or pdf. Links should go in desc.”]
+Template details: [Those adding a submission can input: Username, title of post, category (Educational, Network Building, or Collaborative), date, short desc, and files. Note above where to submit files that says “files must be doc, docx, ppt, pptx, or pdf. Links should go in desc.”]
 
 Note: Anyone should be able to add a submission, no one can delete a submission except a mod
 
