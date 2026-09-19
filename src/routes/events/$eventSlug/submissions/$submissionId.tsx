@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DownloadSimple, Trash } from "@phosphor-icons/react";
+import { DownloadSimple, Eye, Trash, X } from "@phosphor-icons/react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { getSubmission } from "@/lib/events";
 import { useAuth } from "@/contexts/auth-context";
@@ -38,6 +39,7 @@ function SubmissionDetail() {
   const auth = useAuth();
   const nav = useNavigate();
   const client = useQueryClient();
+  const [previewedFileId, setPreviewedFileId] = useState<string | null>(null);
   const query = useQuery({
     queryKey: ["submission", params.submissionId],
     queryFn: () => getSubmission(params.eventSlug, params.submissionId),
@@ -126,23 +128,52 @@ function SubmissionDetail() {
       </Card>
       <h2 className="mt-7 mb-3 font-heading text-xl font-medium">Files</h2>
       <div className="grid gap-3">
-        {submission.files.map((file) => (
-          <Card key={file.id} size="sm">
-            <CardHeader>
-              <CardTitle>{file.name}</CardTitle>
-              <CardDescription>{size(file.size)}</CardDescription>
-            </CardHeader>
-            <CardFooter className="justify-end">
-              <a
-                href={file.downloadUrl}
-                className={buttonVariants({ variant: "outline" })}
-              >
-                <DownloadSimple />
-                Download
-              </a>
-            </CardFooter>
-          </Card>
-        ))}
+        {submission.files.map((file) => {
+          const isPreviewing = previewedFileId === file.id;
+
+          return (
+            <Card key={file.id} size="sm">
+              <CardHeader>
+                <CardTitle>{file.name}</CardTitle>
+                <CardDescription>
+                  {size(file.size)}
+                  {!file.previewUrl && " · Preview unavailable for this file type"}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex-wrap justify-end gap-2">
+                {file.previewUrl && (
+                  <Button
+                    variant={isPreviewing ? "secondary" : "outline"}
+                    onClick={() =>
+                      setPreviewedFileId(isPreviewing ? null : file.id)
+                    }
+                    aria-expanded={isPreviewing}
+                    aria-controls={`preview-${file.id}`}
+                  >
+                    {isPreviewing ? <X /> : <Eye />}
+                    {isPreviewing ? "Close preview" : "Preview"}
+                  </Button>
+                )}
+                <a
+                  href={file.downloadUrl}
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  <DownloadSimple />
+                  Download
+                </a>
+              </CardFooter>
+              {isPreviewing && file.previewUrl && (
+                <CardContent id={`preview-${file.id}`}>
+                  <iframe
+                    src={file.previewUrl}
+                    title={`Preview of ${file.name}`}
+                    className="h-[70vh] min-h-96 w-full rounded-md border bg-muted"
+                  />
+                </CardContent>
+              )}
+            </Card>
+          );
+        })}
       </div>
     </main>
   );

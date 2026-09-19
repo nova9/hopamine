@@ -9,7 +9,11 @@ import type {
   SubmissionRow,
 } from "../types";
 import { hasStorageCapacity, reserveR2Writes } from "../usage";
-import { createDownloadResponse, sanitizeFilename } from "../utils";
+import {
+  createDownloadResponse,
+  createPreviewResponse,
+  sanitizeFilename,
+} from "../utils";
 import {
   DOCUMENT_TYPE_LABEL,
   hasAllowedDocumentExtension,
@@ -45,6 +49,10 @@ function toSubmissionResponse(row: SubmissionRow, files: SubmissionFileRow[]) {
       mimeType: file.mime_type,
       size: file.size,
       downloadUrl: `/api/submission-files/${file.id}`,
+      previewUrl:
+        file.mime_type === "application/pdf"
+          ? `/api/submission-files/${file.id}/preview`
+          : null,
     })),
   };
 }
@@ -263,6 +271,31 @@ export function registerSubmissionRoutes(app: Hono<AppEnvironment>) {
     const object = await c.env.hopamine_files.get(file.storage_key);
     if (!object) return c.json({ error: "File not found" }, 404);
     const response = createDownloadResponse(
+      object,
+      file.filename,
+      file.mime_type,
+    );
+    c.executionCtx.waitUntil(cache.put(c.req.raw, response.clone()));
+    return response;
+  });
+
+  app.get("/api/submission-files/:fileId/preview", async (c) => {
+    const cache = caches.default;
+    const cached = await cache.match(c.req.raw);
+    if (cached) return cached;
+    const file = await c.env.hopamine_db
+      .prepare(
+        "SELECT filename,mime_type,storage_key FROM submission_files sf JOIN submissions s ON s.id=sf.submission_id WHERE sf.id=?1 AND s.deleted_at IS NULL",
+      )
+      .bind(c.req.param("fileId"))
+      .first<StoredSubmissionFileRow>();
+    if (!file) return c.json({ error: "File not found" }, 404);
+    if (file.mime_type !== "application/pdf") {
+      return c.json({ error: "A preview is not available for this file type" }, 415);
+    }
+    const object = await c.env.hopamine_files.get(file.storage_key);
+    if (!object) return c.json({ error: "File not found" }, 404);
+    const response = createPreviewResponse(
       object,
       file.filename,
       file.mime_type,

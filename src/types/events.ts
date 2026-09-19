@@ -60,6 +60,7 @@ export type SubmissionFile = {
   mimeType: string;
   size: number;
   downloadUrl: string;
+  previewUrl: string | null;
 };
 
 export type Submission = {

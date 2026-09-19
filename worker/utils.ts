@@ -25,3 +25,20 @@ export function createDownloadResponse(
     },
   });
 }
+
+export function createPreviewResponse(
+  object: R2ObjectBody,
+  filename: string,
+  contentType: string,
+) {
+  return new Response(object.body, {
+    headers: {
+      "Content-Type": contentType,
+      "Content-Disposition": `inline; filename="${filename.replace(/["\\]/g, "-")}"`,
+      "Content-Length": String(object.size),
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "public, max-age=86400, s-maxage=2592000",
+      "Content-Security-Policy": "default-src 'none'; frame-ancestors 'self'",
+    },
+  });
+}
