@@ -74,7 +74,11 @@ const createEventFormSchema = z.object({
       "Enter a valid start date and time.",
     ),
   location: z.string().trim().min(1, "Enter the event location.").max(200),
-  description: z.string().trim().min(1, "Enter an event description.").max(5_000),
+  description: z
+    .string()
+    .trim()
+    .min(50, "Enter at least 50 characters.")
+    .max(5_000),
   presentation: z
     .custom<FileList | undefined>()
     .superRefine((files, context) => {
@@ -349,10 +353,12 @@ function CreateEventPage() {
                         {...field}
                         id={field.name}
                         placeholder="What will happen during the event, and what should participants bring?"
+                        minLength={50}
                         maxLength={5_000}
                         className="min-h-32 resize-y"
                         aria-invalid={fieldState.invalid}
                       />
+                      <FieldDescription>Enter at least 50 characters.</FieldDescription>
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}

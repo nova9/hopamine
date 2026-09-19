@@ -7,7 +7,7 @@ export const createEventSchema = z.object({
     .string()
     .refine((value) => !Number.isNaN(Date.parse(value)), "Invalid start date"),
   location: z.string().trim().min(1).max(200),
-  description: z.string().trim().min(1).max(5_000),
+  description: z.string().trim().min(50).max(5_000),
   category: z.enum(["workshop", "trade", "collaboration"]),
 });
 
@@ -17,6 +17,7 @@ export const listEventsSchema = z.object({
 });
 
 export const eventRowSchema = createEventSchema.omit({ startsAt: true }).extend({
+  description: z.string().trim().min(1).max(5_000),
   id: z.string(),
   slug: z.string(),
   starts_at: z.string(),

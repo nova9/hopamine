@@ -150,7 +150,10 @@ function EditEventPage() {
                   defaultValue={event.description}
                   className="min-h-32"
                   required
+                  minLength={50}
+                  maxLength={5_000}
                 />
+                <FieldDescription>Enter at least 50 characters.</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="image">Replace event image</FieldLabel>
