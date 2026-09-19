@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@phosphor-icons/react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent } from "react";
@@ -77,6 +78,7 @@ function EditEventPage() {
         params={{ eventSlug }}
         className={`${buttonVariants({ variant: "ghost" })} mb-4`}
       >
+        <ArrowLeft data-icon="inline-start" aria-hidden="true" />
         Back to event
       </Link>
       <Card>

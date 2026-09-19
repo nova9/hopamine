@@ -1,4 +1,4 @@
-import { LockKey } from "@phosphor-icons/react";
+import { ArrowLeft, LockKey } from "@phosphor-icons/react";
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -32,6 +32,7 @@ function AdminRoute() {
           </AlertDescription>
         </Alert>
         <Link to="/" className={`${buttonVariants({ variant: "outline" })} mt-4`}>
+          <ArrowLeft data-icon="inline-start" aria-hidden="true" />
           Return to public events
         </Link>
       </main>

@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@phosphor-icons/react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
@@ -88,6 +89,7 @@ function NewSubmissionPage() {
         params={{ eventSlug }}
         className={`${buttonVariants({ variant: "ghost" })} mb-4`}
       >
+        <ArrowLeft data-icon="inline-start" aria-hidden="true" />
         Back to submissions
       </Link>
       <Card>

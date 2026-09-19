@@ -1,4 +1,4 @@
-import { Plus } from "@phosphor-icons/react";
+import { ArrowLeft, Plus } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -24,6 +24,14 @@ function SubmissionsPage() {
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <Link
+        to="/events/$eventSlug"
+        params={{ eventSlug }}
+        className={`${buttonVariants({ variant: "ghost" })} mb-4`}
+      >
+        <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+        Back to event
+      </Link>
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">
