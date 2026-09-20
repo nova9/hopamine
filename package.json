@@ -2,13 +2,20 @@
   "name": "hopamine",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "migrate-local": "pnpm wrangler d1 migrations apply hopamine-db --local"
+    "migrate-local": "pnpm wrangler d1 migrations apply hopamine-db --local",
+    "deploy": "./scripts/deploy.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -4,8 +4,8 @@
   "main": "./worker/index.ts",
   "compatibility_date": "2026-09-17",
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "thathsara.cloudflareaccess.com",
-    "ACCESS_AUD": "a1fe719212bdc0ba487a73375255a658c6f066e1a1cc30d92ba53591857270f2",
+    "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_YOUR_TEAM.cloudflareaccess.com",
+    "ACCESS_AUD": "REPLACE_WITH_YOUR_ACCESS_APPLICATION_AUD",
   },
   "access": {
     "dev": {
@@ -41,7 +41,7 @@
     {
       "binding": "hopamine_db",
       "database_name": "hopamine-db",
-      "database_id": "c2b083fa-f63a-4648-977e-ad4be47122b6",
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
     },
   ],
   "r2_buckets": [

@@ -1,7 +1,7 @@
 - Do not edit index.css
 - Do not edit vite.config.ts
 - UI must follow shadcn "lyra" design system.
-- always refer to requirements in plan.md and req.md
+- always refer to requirements in ./docs/plan.md and ./docs/req.md
 - Do not manually create shadcn components. Use the shadcn cli to generate components. Do not edit the generated components manually. Always use the shadcn cli to update the components.
 - keep things consistent.
 - do not edit .oxlintrc.json
